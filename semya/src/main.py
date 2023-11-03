@@ -6,7 +6,7 @@ from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
-from models import SubmitDatabaseRequest
+from models import SubmitDatabaseRequest, PatchDatabaseRequest
 from utils import Alert, Message
 
 from shared.db import PgRepository, create_db_string
@@ -14,6 +14,7 @@ from shared.logging import configure_logging
 from shared.metric import Metric, MetricType
 from shared.resources import SharedResources
 from shared.utils import SHARED_CONFIG_PATH
+from typing import List
 
 app = FastAPI()
 app.add_middleware(CorrelationIdMiddleware)
@@ -62,20 +63,27 @@ async def fetch(user_id: int):
 
 
 @app.get("/api/db/{source_id}")
-async def retrieve(source_id: UUID) -> Source:
+async def retrieve(source_id: UUID) -> List[Source]:
     return await ctx.source_repo.get(field="source_id", value=source_id)
 
 
-@app.patch("/api/db/", status_code=204)
-async def update(entry: SubmitDatabaseRequest):
-    return await ctx.source_repo.update(entry)
+@app.patch("/api/db/{source_id}", status_code=204)
+async def update(source_id: UUID, entry: PatchDatabaseRequest):
+    await ctx.source_repo.update(
+        Source(
+            source_id=source_id,
+            conn_string=entry.conn_string,
+            inactive=entry.inactive,
+        ),
+        fields=["conn_string", "inactive"]
+    )
 
 
 @app.delete("/api/db/{source_id}")
 async def remove(source_id: UUID):
-    source = retrieve(source_id)
+    source = (await retrieve(source_id))[0]
     source.inactive = True
-    return await ctx.source_repo.update(source)
+    return await ctx.source_repo.update(source, fields=["inactive"])
 
 
 @app.post("/api/healthcheck/{source_id}")
