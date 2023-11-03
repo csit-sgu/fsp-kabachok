@@ -1,3 +1,5 @@
+from typing import Optional
+
 import databases
 from databases import Database
 
@@ -30,35 +32,49 @@ async def get_longest_transaction(connection: databases.core.Connection):
     return response
 
 
-async def get_space(connection: databases.core.Connection):
-    response = await connection.execute(
+async def get_free_space(
+    connection: databases.core.Connection,
+) -> Optional[float]:
+    await connection.execute("CREATE EXTENSION IF NOT EXISTS plpython3u;")
+    await connection.execute(
         """
-        CREATE FUNCTION pymax (a integer, b integer)
-            RETURNS integer
+        CREATE OR REPLACE FUNCTION kabachok_get_space ()
+            RETURNS real
         AS $$
             import shutil
 
-            total, used, free = shutil.disk_usage("/")
+            _total, _used, free = shutil.disk_usage("/")
 
-            print("Total: %d GiB" % (total // (2**30)))
-            print("Used: %d GiB" % (used // (2**30)))
-            print("Free: %d GiB" % (free // (2**30)))
+            return free / (2**30)
         $$ LANGUAGE plpython3u;
         """
     )
-    return response
+    response = await connection.execute("SELECT kabachok_get_space ();")
+    return float(response)
 
 
-async def get_cpu_usage(connection: databases.core.Connection):
-    response = await connection.execute(
+async def get_cpu_usage(
+    connection: databases.core.Connection,
+) -> Optional[float]:
+    await connection.execute("CREATE EXTENSION IF NOT EXISTS plpython3u;")
+    await connection.execute(
         """
-        CREATE FUNCTION pymax (a integer, b integer)
-            RETURNS integer
+        CREATE OR REPLACE FUNCTION kabachok_get_cpu_usage ()
+            RETURNS real
         AS $$
-            import psutil
+            import os
+            import time
 
-            print('The CPU usage is: ', psutil.cpu_percent(1))
+            with open('/proc/stat') as stat_file:
+                lines = stat_file.readlines()
+
+            cpu_stats = lines[0].split()[1:]
+            total_time = sum(map(int, cpu_stats))
+            idle_time = int(cpu_stats[3])
+
+            return 100.0 - (idle_time / total_time * 100.0)
         $$ LANGUAGE plpython3u;
         """
     )
-    return response
+    response = await connection.execute("SELECT kabachok_get_cpu_usage ();")
+    return float(response)
