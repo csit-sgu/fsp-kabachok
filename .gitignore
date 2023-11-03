@@ -4,3 +4,4 @@
 *.lock
 *.csv
 cache
+*settings.json
