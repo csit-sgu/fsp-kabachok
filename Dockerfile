@@ -16,7 +16,8 @@ RUN rye sync --no-lock --no-dev
 ENV PACKAGE_PATH="/app/.venv/lib/python3.11/site-packages"
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY src src
+COPY shared $PACKAGE_PATH/shared
+RUN pip install $PACKAGE_PATH/shared
 
 FROM python:3.11-slim as runtime
 

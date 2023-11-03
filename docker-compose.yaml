@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: kabachok_db
+    container_name: ogorod
     image: postgres:16.0
     restart: always
     environment:
@@ -15,12 +15,21 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-  app:
-    container_name: app
-    build: .
+  kabachok:
+    container_name: kabachok
+    build: kabachok
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-
+  semya:
+    container_name: semya
+    build: semya
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./config:/config
+    depends_on:
+      db:
+        condition: service_healthy

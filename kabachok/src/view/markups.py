@@ -1,5 +1,4 @@
 from telebot import types
-
 from view.messages import get_text
 from view.utils import Button
 
