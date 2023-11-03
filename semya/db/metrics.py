@@ -4,12 +4,6 @@ import databases
 from databases import Database
 
 
-async def connect(db_url):
-    database = Database(db_url)
-    await database.connect()
-    return database
-
-
 async def get_peer_number(connection: databases.core.Connection) -> int:
     response = await connection.execute(
         "SELECT COUNT(client_addr) FROM pg_stat_activity;"

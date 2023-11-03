@@ -22,5 +22,12 @@ class DatabaseCredentials(BaseModel):
     db_name: str
 
 
+class MetricsLimits(BaseModel):
+    cpu_usage_threshold: float
+    free_space_threshold: float
+    ram_usage_threshold: float
+
+
 class SharedResources(JSONSettings):
     pg_creds: DatabaseCredentials
+    metrics: MetricsLimits

@@ -7,6 +7,11 @@
         "port": "5432",
         "db_name": "ogorod"
     },
+    "metrics": {
+        "cpu_usage_threshold": 90,
+        "free_space_threshold": 10,
+        "ram_usage_threshold": 90
+    },
     "logger" : {
         "version": 1,
         "disable_existing_loggers": false,

@@ -6,7 +6,9 @@ from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI
 from models import SubmitDatabaseRequest
+from utils import Message, get_text
 
+import db
 from shared.db import PgRepository, create_db_string
 from shared.logging import configure_logging
 from shared.resources import SharedResources
@@ -75,9 +77,39 @@ async def remove(source_id: UUID):
     return await ctx.source_repo.update(source)
 
 
-@app.post("/api/healthcheck")
-async def healthcheck(entry_id: UUID):
-    pass
+@app.post("/api/healthcheck/{source_id}")
+async def healthcheck(source_id: UUID, locale: str):
+    metrics = ctx.shared_settings.metrics
+    source: Source = await retrieve(source_id)
+
+    database = Database(source.conn_string)
+    await database.connect()
+
+    if not database.is_connected:
+        return {
+            "healthy": False,
+            "message": get_text(locale, Message.NOT_CONNECTED),
+        }
+
+    free_space = db.get_free_space(database)
+    if free_space < metrics.free_space_threshold:
+        return {
+            "healthy": False,
+            "message": get_text(locale, Message.FREE_SPACE),
+        }
+
+    cpu_usage = db.get_cpu_usage(database)
+    if cpu_usage > metrics.cpu_usage_threshold:
+        return {
+            "healthy": False,
+            "message": get_text(locale, Message.CPU_USAGE),
+        }
+
+    peers_number = db.get_peer_number(database)
+    lwlock_count = db.get_lwlock_count(database)
+    longest_transaction = db.get_longest_transaction(database)
+
+    return {"healthy": True, "message": get_text(locale, Message.OK)}
 
 
 @app.on_event("startup")

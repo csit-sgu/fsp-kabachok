@@ -26,8 +26,9 @@ MESSAGES = {
     Message.GET_STATE: {"ru": "Вот состояние на текущий момент"},
     Message.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
     Message.MANAGE: {"ru": "Управление"},
-
-    Message.ENTER_DB_DISPLAY_NAME: {"ru": "Введите название вашей базы данных, которое будет отображаться в боте"},
+    Message.ENTER_DB_DISPLAY_NAME: {
+        "ru": "Введите название вашей базы данных, которое будет отображаться в боте"
+    },
     Message.ENTER_DB_URL: {"ru": "Введите строку подсоединения к базе данных"},
     Message.DB_ADDED: {"ru": "База данных добавлена"},
 }
