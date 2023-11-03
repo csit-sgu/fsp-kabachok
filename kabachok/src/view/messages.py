@@ -4,6 +4,9 @@ from enum import Enum
 class Message(Enum):
     START_MESSAGE = "start_message"
     ADD_DATABASE = "add_database"
+    ADD_DATABASES_FROM_FILE = "add_database_from_file"
+    UPLOAD_DB_FILE = "upload_db_file"
+    DATABASES_UPLOADED = "databases_uploaded"
     DELETE_DATABASE = "delete_database"
     CHANGE_DATABASE = "change_database"
     MANAGE = "manage"
@@ -26,6 +29,16 @@ MESSAGES = {
         "en": "Hello from Kabachok!",
     },
     Message.ADD_DATABASE: {"ru": "Добавить БД"},
+    Message.ADD_DATABASES_FROM_FILE: {"ru": "Добавить БД из файла"},
+    Message.UPLOAD_DB_FILE: {
+        "ru": "Загрузите файл в следующем формате\n\n"
+        + "```\n"
+        + "<Название БД>=<Строка подключения>\n"
+        + "<Название БД>=<Строка подключения>\n"
+        + "..."
+        + "\n```"
+    },
+    Message.DATABASES_UPLOADED: {"ru": "Базы данных загружены"},
     Message.CHANGE_DATABASE: {"ru": "Изменить БД"},
     Message.DELETE_DATABASE: {"ru": "Удалить БД"},
     Message.GET_STATE: {"ru": "Вот состояние на текущий момент"},
