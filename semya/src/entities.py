@@ -24,6 +24,5 @@ class UserSources(BaseModel):
     source_id: UUID
     conn_string: str
     inactive: bool
-    user_id: int
 
     _table_name: ClassVar[str] = "user_sources"
