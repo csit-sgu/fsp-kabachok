@@ -1,3 +1,4 @@
+import time
 from typing import Optional
 
 import databases
@@ -30,7 +31,7 @@ async def get_longest_transaction(connection: databases.core.Connection):
         LIMIT 1;
         """
     )
-    return response[0], response[1]
+    return response[0], response[1].total_seconds()
 
 
 # TODO: Change it from Gb's to %'s of free space
