@@ -31,3 +31,9 @@ MESSAGES = {
 
 def get_text(lang, attr):
     return MESSAGES[attr][lang]
+
+
+class Alert:
+    def __init__(self, type: Message, locale: str):
+        self.type = type
+        self.message = get_text(locale, type)

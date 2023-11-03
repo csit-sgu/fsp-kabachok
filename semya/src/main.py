@@ -6,7 +6,7 @@ from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI
 from models import SubmitDatabaseRequest
-from utils import Message, get_text
+from utils import Alert, Message
 
 import db
 from shared.db import PgRepository, create_db_string
@@ -86,30 +86,23 @@ async def healthcheck(source_id: UUID, locale: str):
     await database.connect()
 
     if not database.is_connected:
-        return {
-            "healthy": False,
-            "message": get_text(locale, Message.NOT_CONNECTED),
-        }
+        return list(Alert(Message.NOT_CONNECTED, locale))
+
+    alerts = list()
 
     free_space = db.get_free_space(database)
     if free_space < metrics.free_space_threshold:
-        return {
-            "healthy": False,
-            "message": get_text(locale, Message.FREE_SPACE),
-        }
+        alerts.append(Alert(Message.FREE_SPACE, locale))
 
     cpu_usage = db.get_cpu_usage(database)
     if cpu_usage > metrics.cpu_usage_threshold:
-        return {
-            "healthy": False,
-            "message": get_text(locale, Message.CPU_USAGE),
-        }
+        alerts.append(Alert(Message.CPU_USAGE, locale))
 
-    peers_number = db.get_peer_number(database)
+    peers_number = db.get_active_peers_number(database)
     lwlock_count = db.get_lwlock_count(database)
     longest_transaction = db.get_longest_transaction(database)
 
-    return {"healthy": True, "message": get_text(locale, Message.OK)}
+    return alerts
 
 
 @app.on_event("startup")
