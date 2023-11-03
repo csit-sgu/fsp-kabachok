@@ -1,6 +1,6 @@
-from fastapi import FastAPI, Response, status
-from fastapi.exceptions import HTTPException
 import logging
+
+from fastapi import FastAPI
 
 app = FastAPI()
 logger = logging.getLogger("app")
