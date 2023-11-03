@@ -16,6 +16,11 @@ def manage_markup():
 
     markup.add(types.KeyboardButton(get_text("ru", Button.ADD_DATABASE.value)))
     markup.add(
+        types.KeyboardButton(
+            get_text("ru", Button.ADD_DATABASES_FROM_FILE.value)
+        )
+    )
+    markup.add(
         types.KeyboardButton(get_text("ru", Button.DELETE_DATABASE.value))
     )
     markup.add(

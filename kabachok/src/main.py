@@ -3,6 +3,7 @@ import uuid
 
 import view.markups as markup
 from dotenv import load_dotenv
+from pydantic import TypeAdapter
 from states import BotState
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_filters import StateFilter
@@ -14,7 +15,7 @@ from telebot.types import (
 )
 from view.messages import Message, get_text
 from view.utils import Button
-from view.viewmodels import DatabaseViewModel
+from view.viewmodels import DatabaseFromFile, DatabaseViewModel
 
 load_dotenv()
 
@@ -214,6 +215,45 @@ async def process_cancel_delete_db(cb):
     )
 
     await bot.set_state(cb.message.chat.id, BotState.Start, cb.message.chat.id)
+
+
+@bot.message_handler(
+    func=lambda message: message.text
+    == get_text("ru", Button.ADD_DATABASES_FROM_FILE.value)
+)
+async def process_add_database_from_file(message):
+    await bot.set_state(
+        message.from_user.id, BotState.UploadingDBFile, message.chat.id
+    )
+
+    await bot.send_message(
+        message.chat.id,
+        get_text("ru", Message.UPLOAD_DB_FILE),
+        reply_markup=ReplyKeyboardRemove(),
+        parse_mode="MarkdownV2",
+    )
+
+
+@bot.message_handler(
+    content_types=["document"], state=BotState.UploadingDBFile
+)
+async def process_uploading_db_file(message):
+    file_name = message.document.file_name
+    file_info = await bot.get_file(message.document.file_id)
+    downloaded_file = await bot.download_file(file_info.file_path)
+
+    validator = TypeAdapter(list[DatabaseFromFile])
+
+    # TODO: Create databases
+    print(repr(validator.validate_json(downloaded_file)))
+
+    await bot.set_state(message.from_user.id, BotState.Start, message.chat.id)
+
+    await bot.send_message(
+        message.chat.id,
+        get_text("ru", Message.DATABASES_UPLOADED),
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
 
 if __name__ == "__main__":
