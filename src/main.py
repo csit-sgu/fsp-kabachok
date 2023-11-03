@@ -39,13 +39,13 @@ async def process_start_message(message):
     chat_id = message.chat.id
     text = message.text
 
-    if text == get_text("ru", Button.MANAGE.value):
+    if text == get_text("ru", Button.GET_STATE.value):
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Start, chat_id)
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
         # TODO(nrydanov): Realize based on function from Postgres API
         pass
-    elif text == get_text("ru", Button.GET_STATE.value):
+    elif text == get_text("ru", Button.MANAGE.value):
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
         await bot.send_message(
