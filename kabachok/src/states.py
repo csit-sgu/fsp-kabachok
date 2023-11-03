@@ -9,8 +9,7 @@ class BotState(StatesGroup):
     Changing = State()
     Managing = State()
     Manage = State()
-
     EnteringDBName = State()
     EnteringDBURL = State()
-
     SelectingDBForDelete = State()
+    UploadingDBFile = State()
