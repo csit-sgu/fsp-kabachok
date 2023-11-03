@@ -14,6 +14,7 @@ dependencies = [
     "databases>=0.8.0",
     "pyTelegramBotAPI",
     "aiohttp>=3.8.6",
+    "asyncpg>=0.28.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
