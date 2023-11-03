@@ -1,0 +1,41 @@
+{
+    "pg_creds": {
+        "driver": "postgres",
+        "username": "postgres",
+        "password": "1234",
+        "url": "ogorod",
+        "port": "5432",
+        "db_name": "ogorod"
+    },
+    "logger" : {
+        "version": 1,
+        "disable_existing_loggers": false,
+        "filters": {
+            "correlation_id": {
+                "()": "asgi_correlation_id.CorrelationIdFilter",
+                "uuid_length": 32,
+                "default_value": "-"
+            }
+        },
+        "formatters": {
+            "console": {
+                "class": "logging.Formatter",
+                "datefmt": "%H:%M:%S",
+                "format": "[%(levelname)s] [%(asctime)s] %(message)s (%(correlation_id)s)"
+            }
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "filters": ["correlation_id"],
+                "formatter": "console"
+            }
+        },
+        "loggers": {
+            "app": {"handlers": ["console"], "level": "INFO", "propagate": true},
+            "databases": {"handlers": ["console"], "level": "INFO"},
+            "httpx": {"handlers": ["console"], "level": "INFO"},
+            "asgi_correlation_id": {"handlers": ["console"], "level": "INFO"}
+        }
+    }
+}
