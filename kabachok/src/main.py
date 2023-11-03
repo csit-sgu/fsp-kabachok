@@ -262,8 +262,12 @@ async def process_uploading_db_file(message):
 
     validator = TypeAdapter(list[DatabaseFromFile])
 
-    # TODO: Create databases
-    print(repr(validator.validate_json(downloaded_file)))
+    for db in validator.validate_json(downloaded_file):
+        await database_api.submit_db(
+            user_id=message.from_user.id,
+            display_name=db.display_name,
+            db_url=db.db_url,
+        )
 
     await bot.set_state(message.from_user.id, BotState.Start, message.chat.id)
 
