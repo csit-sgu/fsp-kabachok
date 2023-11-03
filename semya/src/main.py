@@ -1,6 +1,7 @@
 import logging
 from uuid import UUID, uuid4
 
+import db.metrics as metrics
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
@@ -8,7 +9,6 @@ from fastapi import FastAPI
 from models import SubmitDatabaseRequest
 from utils import Alert, Message
 
-import db
 from shared.db import PgRepository, create_db_string
 from shared.logging import configure_logging
 from shared.resources import SharedResources
@@ -90,17 +90,17 @@ async def healthcheck(source_id: UUID, locale: str):
 
     alerts = list()
 
-    free_space = db.get_free_space(database)
+    free_space = metrics.get_free_space(database)
     if free_space < metrics.free_space_threshold:
         alerts.append(Alert(Message.FREE_SPACE, locale))
 
-    cpu_usage = db.get_cpu_usage(database)
+    cpu_usage = metrics.get_cpu_usage(database)
     if cpu_usage > metrics.cpu_usage_threshold:
         alerts.append(Alert(Message.CPU_USAGE, locale))
 
-    peers_number = db.get_active_peers_number(database)
-    lwlock_count = db.get_lwlock_count(database)
-    longest_transaction = db.get_longest_transaction(database)
+    peers_number = metrics.get_active_peers_number(database)
+    lwlock_count = metrics.get_lwlock_count(database)
+    longest_transaction = metrics.get_longest_transaction(database)
 
     return alerts
 
