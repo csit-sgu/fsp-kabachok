@@ -9,7 +9,7 @@ ENV WD_NAME=/app
 WORKDIR $WD_NAME
 RUN curl -sSf https://rye-up.com/get | RYE_INSTALL_OPTION="--yes" RYE_NO_AUTO_INSTALL=1 bash
 
-COPY pyproject.toml requirements*.lock .python-version ./
+COPY pyproject.toml requirements*.lock .python-version README.md ./
 
 RUN rye sync --no-lock --no-dev
 
