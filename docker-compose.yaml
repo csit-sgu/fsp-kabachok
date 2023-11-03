@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: db
+    container_name: kabachok_db
     image: postgres:16.0
     restart: always
     environment:
