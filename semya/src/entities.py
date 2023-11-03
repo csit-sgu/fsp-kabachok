@@ -23,6 +23,7 @@ class UserSource(BaseModel):
 
 class UserSources(BaseModel):
     source_id: UUID
+    display_name: str
     conn_string: str
     inactive: bool
 

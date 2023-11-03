@@ -18,6 +18,6 @@ CREATE TABLE user_source (
 
 
 CREATE VIEW user_sources AS
-SELECT us.user_id, us.source_id, s.conn_string, s.inactive
+SELECT us.user_id, us.source_id, s.conn_string, s.display_name, s.inactive
 FROM user_source as us INNER JOIN source as s
 ON us.source_id = s.source_id
