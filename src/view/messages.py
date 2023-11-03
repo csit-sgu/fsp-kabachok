@@ -10,6 +10,10 @@ class Message(Enum):
     GET_STATE = "get_state"
     GET_STATE_BUTTON = "get_state_button"
 
+    ENTER_DB_DISPLAY_NAME = "enter_db_display_name"
+    ENTER_DB_URL = "enter_db_url"
+    DB_ADDED = "db_added"
+
 
 MESSAGES = {
     Message.START_MESSAGE: {
@@ -22,6 +26,10 @@ MESSAGES = {
     Message.GET_STATE: {"ru": "Вот состояние на текущий момент"},
     Message.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
     Message.MANAGE: {"ru": "Управление"},
+
+    Message.ENTER_DB_DISPLAY_NAME: {"ru": "Введите название вашей базы данных, которое будет отображаться в боте"},
+    Message.ENTER_DB_URL: {"ru": "Введите строку подсоединения к базе данных"},
+    Message.DB_ADDED: {"ru": "База данных добавлена"},
 }
 
 
