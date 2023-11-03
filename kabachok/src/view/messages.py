@@ -9,10 +9,15 @@ class Message(Enum):
     MANAGE = "manage"
     GET_STATE = "get_state"
     GET_STATE_BUTTON = "get_state_button"
-
     ENTER_DB_DISPLAY_NAME = "enter_db_display_name"
     ENTER_DB_URL = "enter_db_url"
     DB_ADDED = "db_added"
+    SELECT_DB = "select_db"
+    CONFIRM_DB_DELETING = "confirm_db_deleting"
+    DB_DELETED = "db_deleted"
+    DB_DELETING_CANCELED = "db_deleting_canceled"
+    YES = "yes"
+    NO = "no"
 
 
 MESSAGES = {
@@ -31,6 +36,14 @@ MESSAGES = {
     },
     Message.ENTER_DB_URL: {"ru": "Введите строку подсоединения к базе данных"},
     Message.DB_ADDED: {"ru": "База данных добавлена"},
+    Message.SELECT_DB: {"ru": "Выберите базу данных"},
+    Message.CONFIRM_DB_DELETING: {
+        "ru": "Вы точно хотите удалить базу данных с названием %?"
+    },
+    Message.DB_DELETED: {"ru": "База с названием % удалена"},
+    Message.DB_DELETING_CANCELED: {"ru": "Удаление отменено"},
+    Message.YES: {"ru": "Да"},
+    Message.NO: {"ru": "Нет"},
 }
 
 
