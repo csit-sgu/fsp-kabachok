@@ -1,65 +1,69 @@
 services:
-  cpu_teplitsa:
-    container_name: cpu_teplitsa
+  cpu_playground:
+    container_name: cpu_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4000:5432"
     cpus: 0.01
-  ram_teplitsa:
-    container_name: ram_teplitsa
+  ram_playground:
+    container_name: ram_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4001:5432"
     mem_limit: 150M
-  connection_teplitsa:
-    container_name: connection_teplitsa
+  connection_playground:
+    container_name: connection_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4002:5432"
-  storage_teplitsa:
-    container_name: storage_teplitsa
+  storage_playground:
+    container_name: storage_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-data:/var/lib/postgresql/data
     ports:
       - "4003:5432"
     storage_opt:
       size: '1G'
-  lwlock_teplitsa:
-    container_name: lwlock_teplitsa
+  lwlock_playground:
+    container_name: lwlock_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4004:5432"
-  timeout_teplitsa:
-    container_name: timeout_teplitsa
+  timeout_playground:
+    container_name: timeout_playground
     image: postgres:16.0
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
-      - ./teplitsa/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4005:5432"
+  volumes:
+    db-data:
+      driver: local

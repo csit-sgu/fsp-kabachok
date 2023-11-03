@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: ogorod
+    container_name: db
     image: postgres:16.0
     restart: always
     environment:
@@ -15,17 +15,17 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-  kabachok:
-    container_name: kabachok
-    build: kabachok
+  tgbot:
+    container_name: tgbot
+    build: tgbot
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-  semya:
-    container_name: semya
-    build: semya
+  alarmist:
+    container_name: alarmist
+    build: alarmist
     ports:
       - "8001:8000"
     volumes:

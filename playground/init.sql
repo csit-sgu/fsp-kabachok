@@ -1,9 +1,9 @@
-CREATE DATABASE teplitsa;
+CREATE DATABASE playground;
 
-\c teplitsa
+\c playground
 
 CREATE TABLE ovowi (
-    ovow_id uuid PRIMARY KEY,
+    ovow_id int,
     ovow_name varchar(128) NOT NULL,
     ovow_description varchar(512) NOT NULL
 );
