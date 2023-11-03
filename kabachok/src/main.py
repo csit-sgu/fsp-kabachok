@@ -3,6 +3,7 @@ import uuid
 
 import view.markups as markup
 from dotenv import load_dotenv
+from pydantic import TypeAdapter
 from states import BotState
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_filters import StateFilter
@@ -14,7 +15,7 @@ from telebot.types import (
 )
 from view.messages import Message, get_text
 from view.utils import Button
-from view.viewmodels import DatabaseViewModel
+from view.viewmodels import DatabaseFromFile, DatabaseViewModel
 
 load_dotenv()
 
@@ -241,14 +242,10 @@ async def process_uploading_db_file(message):
     file_info = await bot.get_file(message.document.file_id)
     downloaded_file = await bot.download_file(file_info.file_path)
 
-    file_text = downloaded_file.decode("utf-8")
-    items = (
-        i.strip().split("=") for i in file_text.split("\n") if i.strip() != ""
-    )
+    validator = TypeAdapter(list[DatabaseFromFile])
 
     # TODO: Create databases
-    for name, db_url in items:
-        print(name, db_url)
+    print(repr(validator.validate_json(downloaded_file)))
 
     await bot.set_state(message.from_user.id, BotState.Start, message.chat.id)
 
