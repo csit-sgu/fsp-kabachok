@@ -49,19 +49,26 @@ async def submit(entry: SubmitDatabaseRequest):
     ctx.source_repo.add(UserSource(user_id=entry.user_id, source_id=uuid))
 
 
-@app.get("/api/db/{user_id}")
+@app.get("/api/users/{user_id}/db")
 async def fetch(user_id: int):
     return await ctx.source_view_repo.get(field="user_id", value=user_id)
 
 
+@app.get("/api/db/{source_id}")
+async def retrieve(source_id: UUID) -> Source:
+    return await ctx.source_repo.get(field="source_id", value=source_id)
+
+
 @app.patch("/api/db/")
-async def update(entry_id: UUID):
-    pass
+async def update(entry: SubmitDatabaseRequest):
+    return await ctx.source_repo.update(entry)
 
 
-@app.delete("/api/db/")
-async def remove(entry_id: UUID):
-    pass
+@app.delete("/api/db/{source_id}")
+async def remove(source_id: UUID):
+    source = retrieve(source_id)
+    source.inactive = True
+    return await ctx.source_repo.update(source)
 
 
 @app.post("/api/healthcheck")
