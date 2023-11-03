@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class Message(Enum):
-    OK = "ok"
     ACTIVE_PEERS = "active_peers"
     CPU_USAGE = "cpu_usage"
     FREE_SPACE = "free_space"
@@ -10,10 +9,6 @@ class Message(Enum):
 
 
 MESSAGES = {
-    Message.OK: {
-        "ru": "ОК",
-        "en": "OK",
-    },
     Message.CPU_USAGE: {
         "ru": "Слишком большая нагрузка на CPU",
         "en": "Extensive CPU load",
@@ -29,11 +24,7 @@ MESSAGES = {
 }
 
 
-def get_text(lang, attr):
-    return MESSAGES[attr][lang]
-
-
 class Alert:
     def __init__(self, type: Message, locale: str):
         self.type = type
-        self.message = get_text(locale, type)
+        self.message = MESSAGES[type][locale]
