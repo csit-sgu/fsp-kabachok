@@ -5,12 +5,13 @@ import db.metrics as metrics
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from models import SubmitDatabaseRequest
 from utils import Alert, Message
 
 from shared.db import PgRepository, create_db_string
 from shared.logging import configure_logging
+from shared.metric import Metric, MetricType
 from shared.resources import SharedResources
 from shared.utils import SHARED_CONFIG_PATH
 
@@ -103,6 +104,44 @@ async def healthcheck(source_id: UUID, locale: str):
     longest_transaction = metrics.get_longest_transaction(database)
 
     return alerts
+
+
+@app.post("/api/get_state/{source_id}")
+async def get_state(source_id: UUID, locale: str, response: Response):
+    metrics = ctx.shared_settings.metrics
+    source: Source = await retrieve(source_id)
+
+    database = Database(source.conn_string)
+    await database.connect()
+
+    if not database.is_connected:
+        # TODO(granatam): Change status code
+        return Response(
+            status_code=400, content=Alert(Message.NOT_CONNECTED, locale)
+        )
+
+    free_space = Metric(
+        MetricType.FREE_SPACE, metrics.get_free_space(database)
+    )
+    cpu_usage = Metric(MetricType.CPU_USAGE, metrics.get_cpu_usage(database))
+    active_peers = Metric(
+        MetricType.ACTIVE_PEERS, metrics.get_active_peers_number(database)
+    )
+    lwlock_count = Metric(
+        MetricType.LWLOCK_TRANSACTIONS, metrics.get_lwlock_count(database)
+    )
+    longest_transaction = Metric(
+        MetricType.LONGEST_TRANSACTION,
+        metrics.get_longest_transaction(database),
+    )
+
+    return [
+        free_space,
+        cpu_usage,
+        active_peers,
+        lwlock_count,
+        longest_transaction,
+    ]
 
 
 @app.on_event("startup")
