@@ -40,29 +40,19 @@ async def process_start_message(message):
     text = message.text
 
     if text == get_text("ru", Button.MANAGE.value):
-        await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
+        chat_id = message.chat.id
+        await bot.set_state(message.from_user.id, BotState.Start, chat_id)
+        await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
+        # TODO(nrydanov): Realize based on function from Postgres API
+        pass
     elif text == get_text("ru", Button.GET_STATE.value):
-        await bot.set_state(message.from_user.id, BotState.GetState, chat_id)
-
-
-@bot.message_handler(state=BotState.GetState)
-async def retrieve_state(message):
-    chat_id = message.chat.id
-    await bot.set_state(message.from_user.id, BotState.Start, chat_id)
-    await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
-    # TODO(nrydanov): Realize based on function from Postgres API
-    pass
-
-
-@bot.message_handler(state=BotState.Manage)
-async def manage(message):
-    chat_id = message.chat.id
-    await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
-    await bot.send_message(
-        chat_id,
-        get_text("ru", Message.MANAGE),
-        reply_markup=markup.manage_markup(),
-    )
+        chat_id = message.chat.id
+        await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
+        await bot.send_message(
+            chat_id,
+            get_text("ru", Message.MANAGE),
+            reply_markup=markup.manage_markup(),
+        )
 
 
 if __name__ == "__main__":
