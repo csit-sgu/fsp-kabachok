@@ -10,7 +10,10 @@
     "metrics": {
         "cpu_usage_threshold": 90,
         "free_space_threshold": 10,
-        "ram_usage_threshold": 90
+        "ram_usage_threshold": 90,
+        "max_active_peers_delta": 200,
+        "max_lwlock_count": 10,
+        "max_transaction_duration": 100
     },
     "logger" : {
         "version": 1,

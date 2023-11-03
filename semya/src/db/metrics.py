@@ -33,6 +33,7 @@ async def get_longest_transaction(connection: databases.core.Connection):
     return response[0], response[1]
 
 
+# TODO: Change it from Gb's to %'s of free space
 async def get_free_space(
     connection: databases.core.Connection,
 ) -> Optional[float]:
