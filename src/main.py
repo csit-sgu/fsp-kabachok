@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from telebot import custom_filters
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StatePickleStorage
 
@@ -18,6 +19,8 @@ bot = AsyncTeleBot(
     state_storage=StatePickleStorage(file_path="cache/.state_save/states.pkl"),
 )
 
+bot.add_custom_filter(custom_filters.StateFilter(bot))
+
 
 @bot.message_handler(commands=["start"])
 async def process_start_message(message):
@@ -28,6 +31,18 @@ async def process_start_message(message):
         get_text("ru", Message.START_MESSAGE),
         reply_markup=markup.start_markup(),
     )
+
+
+@bot.message_handler(state=BotState.get_state)
+async def retrieve_state(message):
+    await bot.set_state(message.from_user.id, BotState.start, message.chat_id)
+    # TODO(nrydanov): Realize based on function from Postgres API
+    pass
+
+
+@bot.message_handler(state=BotState.Manage)
+async def manage(message):
+    pass
 
 
 @bot.message_handler()
