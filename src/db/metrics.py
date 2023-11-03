@@ -25,11 +25,16 @@ async def get_lwlock_count(connection: databases.core.Connection) -> int:
 
 
 async def get_longest_transaction(connection: databases.core.Connection):
-    response = await connection.execute(
-        "SELECT max(now() - xact_start) FROM pg_stat_activity"
-        " WHERE state IN ('idle in transaction', 'active');"
+    response = await connection.fetch_one(
+        """
+        SELECT pid, now() - xact_start AS time_difference
+        FROM pg_stat_activity
+        WHERE state IN ('idle in transaction', 'active')
+        ORDER BY time_difference DESC
+        LIMIT 1;
+        """
     )
-    return response
+    return response[0], response[1]
 
 
 async def get_free_space(
