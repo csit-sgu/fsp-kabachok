@@ -1,7 +1,9 @@
 import os
 import uuid
 
+import httpx
 import view.markups as markup
+from api.database_api import DatabaseApi
 from dotenv import load_dotenv
 from pydantic import TypeAdapter
 from states import BotState
@@ -20,6 +22,12 @@ from view.viewmodels import DatabaseFromFile, DatabaseViewModel
 load_dotenv()
 
 token = os.getenv("BOT_TOKEN")
+backend_url_prefix = os.getenv(
+    "BACKEND_URL_PREFIX", "http://localhost:8001/api"
+)
+
+httpx_client = httpx.AsyncClient()
+database_api = DatabaseApi(httpx_client, backend_url_prefix)
 
 storage = StatePickleStorage(file_path="cache/.state_save/states.pkl")
 bot = AsyncTeleBot(
@@ -96,7 +104,9 @@ async def process_db_url(message):
     db_name = data["db_name"]
     db_url = message.text
 
-    # TODO: Add db
+    await database_api.submit_db(
+        user_id=message.from_user.id, display_name=db_name, db_url=db_url
+    )
 
     await bot.set_state(message.from_user.id, BotState.Start, message.chat.id)
     await bot.send_message(
@@ -116,14 +126,21 @@ async def process_delete_db(message):
         message.from_user.id, BotState.SelectingDBForDelete, message.chat.id
     )
 
-    # TODO: Get databases
-
     databases = [
-        DatabaseViewModel(
-            uuid.uuid4(), f"Базаданных для кондитерских изделий #{i}"
-        )
-        for i in range(1, 20 + 1)
+        DatabaseViewModel(db.source_id, db.display_name)
+        for db in await database_api.get_dbs(user_id=message.from_user.id)
     ]
+
+    if not databases:
+        await bot.set_state(
+            message.from_user.id, BotState.Start, message.chat.id
+        )
+        await bot.send_message(
+            message.chat.id,
+            get_text("ru", Message.NO_DBS),
+            reply_markup=markup.start_markup(),
+        )
+        return
 
     databases_in_fsm_data = {
         i: db.to_dict() for i, db in enumerate(databases, start=1)
@@ -187,8 +204,9 @@ async def process_delete_db(cb):
     db_number, db_id = cb.data[6:].split("_")
     db_number = int(db_number)
 
-    # TODO: Delete db
     db = DatabaseViewModel.from_dict(data["databases"][db_number])
+
+    await database_api.remove_db(db.id)
 
     await bot.answer_callback_query(cb.id)
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
