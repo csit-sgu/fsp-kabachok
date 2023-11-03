@@ -3,8 +3,8 @@ name = "fsp-kabachok"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "Nikita Rydanov", email = "wrongwayboyy@gmail.com" }
-    # Add yourself here
+    { name = "Nikita Rydanov", email = "wrongwayboyy@gmail.com" },
+    { name = "Artemiy Granat", email = "artemiigranat@gmail.com" }
 ]
 dependencies = [
     "fastapi>=0.104.1",
@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.4.2",
     "pydantic-settings>=2.0.3",
     "databases>=0.8.0",
+    "pyTelegramBotAPI",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
