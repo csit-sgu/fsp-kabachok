@@ -8,3 +8,4 @@ class BotState(StatesGroup):
     Deleting = State()
     Changing = State()
     Managing = State()
+    Manage = State()

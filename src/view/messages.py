@@ -6,6 +6,9 @@ class Message(Enum):
     ADD_DATABASE = "add_database"
     DELETE_DATABASE = "delete_database"
     CHANGE_DATABASE = "change_database"
+    MANAGE = "manage"
+    GET_STATE = "get_state"
+    GET_STATE_BUTTON = "get_state_button"
 
 
 MESSAGES = {
@@ -16,6 +19,9 @@ MESSAGES = {
     Message.ADD_DATABASE: {"ru": "Добавить БД"},
     Message.CHANGE_DATABASE: {"ru": "Изменить БД"},
     Message.DELETE_DATABASE: {"ru": "Удалить БД"},
+    Message.GET_STATE: {"ru": "Вот состояние на текущий момент"},
+    Message.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
+    Message.MANAGE: {"ru": "Управление"},
 }
 
 

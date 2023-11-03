@@ -1,13 +1,11 @@
 from enum import Enum
 
-from messages import get_text
+from view.messages import Message
 
 
 class Button(Enum):
-    GET_STATE = "get_state"
-    ADD_DATABASE = "add_database"
-    DELETE_DATABASE = "delete_database"
-    CHANGE_DATABASE = "change_database"
-
-    def get_formatted(self, lang):
-        return get_text(lang, self.value)
+    GET_STATE = Message.GET_STATE_BUTTON
+    ADD_DATABASE = Message.ADD_DATABASE
+    DELETE_DATABASE = Message.DELETE_DATABASE
+    CHANGE_DATABASE = Message.CHANGE_DATABASE
+    MANAGE = Message.MANAGE
