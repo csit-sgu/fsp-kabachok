@@ -50,7 +50,11 @@ ctx = Context()
 async def submit(entry: SubmitDatabaseRequest):
     uuid = uuid4()
     await ctx.source_repo.add(
-        Source(source_id=uuid, conn_string=entry.conn_string)
+        Source(
+            source_id=uuid,
+            display_name=entry.display_name,
+            conn_string=entry.conn_string,
+        )
     )
     await ctx.relation_repo.add(
         UserSource(user_id=entry.user_id, source_id=uuid)
@@ -73,9 +77,10 @@ async def update(source_id: UUID, entry: PatchDatabaseRequest):
         Source(
             source_id=source_id,
             conn_string=entry.conn_string,
+            display_name=entry.display_name,
             inactive=entry.inactive,
         ),
-        fields=["conn_string", "inactive"]
+        fields=["conn_string", "inactive", "display_name"],
     )
 
 

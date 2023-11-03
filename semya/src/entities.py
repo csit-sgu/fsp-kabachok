@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class Source(BaseModel):
     source_id: UUID
+    display_name: str
     conn_string: str
     inactive: bool = False
 

@@ -5,6 +5,7 @@ CREATE DATABASE ogorod;
 CREATE TABLE source (
     source_id uuid PRIMARY KEY,
     conn_string varchar(128) NOT NULL,
+    display_name varchar(128) NOT NULL,
     inactive boolean NOT NULL
 );
 
