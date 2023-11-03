@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from uuid import UUID, uuid4
 
 import db.metrics as metrics
@@ -6,7 +7,7 @@ from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
-from models import SubmitDatabaseRequest, PatchDatabaseRequest
+from models import PatchDatabaseRequest, SubmitDatabaseRequest
 from utils import Alert, Message
 
 from shared.db import PgRepository, create_db_string
@@ -14,7 +15,6 @@ from shared.logging import configure_logging
 from shared.metric import Metric, MetricType
 from shared.resources import SharedResources
 from shared.utils import SHARED_CONFIG_PATH
-from typing import List
 
 app = FastAPI()
 app.add_middleware(CorrelationIdMiddleware)
@@ -92,9 +92,9 @@ async def remove(source_id: UUID):
     await ctx.source_repo.update(source, fields=["inactive"])
 
 
-@app.post("/api/healthcheck/{source_id}")
+@app.post("/api/healthcheck/{source_id}/{locale}")
 async def healthcheck(source_id: UUID, locale: str):
-    metrics = ctx.shared_settings.metrics
+    metrics_limits = ctx.shared_settings.metrics
     source: Source = await retrieve(source_id)
 
     database = Database(source.conn_string)
@@ -106,22 +106,31 @@ async def healthcheck(source_id: UUID, locale: str):
     alerts = list()
 
     free_space = metrics.get_free_space(database)
-    if free_space < metrics.free_space_threshold:
+    if free_space < metrics_limits.free_space_threshold:
         alerts.append(Alert(Message.FREE_SPACE, locale))
 
     cpu_usage = metrics.get_cpu_usage(database)
-    if cpu_usage > metrics.cpu_usage_threshold:
+    if cpu_usage > metrics_limits.cpu_usage_threshold:
         alerts.append(Alert(Message.CPU_USAGE, locale))
 
     peers_number = metrics.get_active_peers_number(database)
+    if peers_number > metrics_limits.max_active_peers_delta:
+        alerts.append(Alert(Message.ACTIVE_PEERS, locale))
+
     lwlock_count = metrics.get_lwlock_count(database)
-    longest_transaction = metrics.get_longest_transaction(database)
+    if lwlock_count > metrics_limits.max_lwlock_count:
+        alerts.append(Alert(Message.LWLOCK_COUNT, locale))
+
+    # TODO: "Transaction with id %pid is running %longest_transaction seconds"
+    pid, transaction_duration = metrics.get_longest_transaction(database)
+    if transaction_duration > metrics_limits.max_transaction_duration:
+        alerts.append(Alert(Message.MAX_TRANSACTION_DURATION, locale))
 
     return alerts
 
 
-@app.post("/api/get_state/{source_id}")
-async def get_state(source_id: UUID, locale: str, response: Response):
+@app.post("/api/get_state/{source_id}/{locale}")
+async def get_state(source_id: UUID, locale: str):
     metrics = ctx.shared_settings.metrics
     source: Source = await retrieve(source_id)
 
