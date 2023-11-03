@@ -8,9 +8,9 @@ CREATE TABLE source (
     inactive boolean NOT NULL
 )
 
-CREATE TABLE user_conn (
+CREATE TABLE user_source (
     user_id bigint NOT NULL,
     source_id uuid NOT NULL
 
-    PRIMARY KEY (user_id, conn_string)
+    PRIMARY KEY (user_id, user_source)
 )

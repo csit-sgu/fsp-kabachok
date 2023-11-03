@@ -69,3 +69,8 @@ async def healthcheck(entry_id: UUID):
 async def main() -> None:
     configure_logging()
     await ctx.init_db()
+
+
+@app.on_event("shutdown")
+async def main() -> None:
+    await ctx.dispose_db()
