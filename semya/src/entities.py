@@ -1,3 +1,4 @@
+from typing import ClassVar
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -8,20 +9,21 @@ class Source(BaseModel):
     conn_string: str
     inactive: bool = False
 
-    _table_name = "source"
-    _pk = "source_id"
+    _table_name: ClassVar[str] = "source"
+    _pk: ClassVar[str] = "source_id"
 
 
 class UserSource(BaseModel):
-    user_id: bool
-    source_id: bool
+    user_id: int
+    source_id: UUID
 
-    _table_name = "user_source"
+    _table_name: ClassVar[str] = "user_source"
 
 
 class UserSources(BaseModel):
     source_id: UUID
     conn_string: str
     inactive: bool
+    user_id: int
 
-    _table_name = "user_sources"
+    _table_name: ClassVar[str] = "user_sources"

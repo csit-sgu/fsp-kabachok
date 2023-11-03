@@ -27,7 +27,7 @@ services:
     container_name: semya
     build: semya
     ports:
-      - "8001:8001"
+      - "8001:8000"
     volumes:
       - ./config:/config
     depends_on:

@@ -42,11 +42,15 @@ class Context:
 ctx = Context()
 
 
-@app.post("/api/db/")
+@app.post("/api/db/", status_code=204)
 async def submit(entry: SubmitDatabaseRequest):
     uuid = uuid4()
-    ctx.source_repo.add(Source(source_id=uuid, **entry.model_dump()))
-    ctx.source_repo.add(UserSource(user_id=entry.user_id, source_id=uuid))
+    await ctx.source_repo.add(
+        Source(source_id=uuid, conn_string=entry.conn_string)
+    )
+    await ctx.relation_repo.add(
+        UserSource(user_id=entry.user_id, source_id=uuid)
+    )
 
 
 @app.get("/api/users/{user_id}/db")
@@ -59,7 +63,7 @@ async def retrieve(source_id: UUID) -> Source:
     return await ctx.source_repo.get(field="source_id", value=source_id)
 
 
-@app.patch("/api/db/")
+@app.patch("/api/db/", status_code=204)
 async def update(entry: SubmitDatabaseRequest):
     return await ctx.source_repo.update(entry)
 

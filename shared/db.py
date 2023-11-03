@@ -1,3 +1,4 @@
+import logging
 from typing import List, Type
 
 from asyncpg.exceptions import UniqueViolationError
@@ -5,6 +6,8 @@ from databases import Database
 from pydantic import BaseModel, TypeAdapter
 
 from shared.resources import DatabaseCredentials
+
+logger = logging.getLogger("app")
 
 
 class Entity(BaseModel):
@@ -35,6 +38,7 @@ class AbstractRepository:
         columns, placeholders = self._get_query_parameters(dumps[0])
 
         query = f"INSERT INTO {self._table_name}({columns}) VALUES ({placeholders})"
+        logger.debug(f"Sending query: {query}")
 
         if ignore_conflict:
             query += " ON CONFLICT DO NOTHING"
@@ -47,7 +51,7 @@ class AbstractRepository:
         pk = entity._pk
         query_set = [f"{field} = :{field}" for field in fields]
         query = f"UPDATE {self._table_name} SET {','.join(query_set)} WHERE {pk} = :{pk}"
-
+        logger.debug(f"Sending query: {query}")
         await self._db.execute(
             query=query, values={k: dump[k] for k in fields} | {pk: dump[pk]}
         )
