@@ -1,11 +1,23 @@
-import logging
+import telebot
+from dotenv import load_dotenv
+import os
 
-from fastapi import FastAPI
+load_dotenv()
 
-app = FastAPI()
-logger = logging.getLogger("app")
+token = os.getenv("BOT_TOKEN")
+
+bot = telebot.TeleBot(token)
 
 
-@app.get("/")
-async def hello():
-    return {"message": "Supervisor API is running"}
+@bot.message_handler(commands=["start"])
+def process_start_message(message):
+    bot.send_message(message.chat.id, "Hello, Kabachok!")
+
+
+@bot.message_handler()
+def process_message(message):
+    bot.send_message(message.chat.id, message.text)
+
+
+if __name__ == "__main__":
+    bot.infinity_polling()
