@@ -63,7 +63,8 @@ async def submit(entry: SubmitDatabaseRequest):
 
 @app.get("/api/users/{user_id}/db")
 async def fetch(user_id: int):
-    return await ctx.source_view_repo.get(field="user_id", value=user_id)
+    result = await ctx.source_view_repo.get(field="user_id", value=user_id)
+    return list(filter(lambda x: not x.inactive, result))
 
 
 @app.get("/api/db/{source_id}")
@@ -88,7 +89,7 @@ async def update(source_id: UUID, entry: PatchDatabaseRequest):
 async def remove(source_id: UUID):
     source = (await retrieve(source_id))[0]
     source.inactive = True
-    return await ctx.source_repo.update(source, fields=["inactive"])
+    await ctx.source_repo.update(source, fields=["inactive"])
 
 
 @app.post("/api/healthcheck/{source_id}")
