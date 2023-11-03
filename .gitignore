@@ -1,5 +1,6 @@
 *__pycache__
 .*
+!.pre-commit-config.yaml
 *.lock
 *.csv
 cache
