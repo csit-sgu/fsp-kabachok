@@ -20,8 +20,6 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - WEB_CONCURRENCY=$APP_WORKERS
     depends_on:
       db:
         condition: service_healthy
