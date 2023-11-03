@@ -32,6 +32,8 @@ dev-dependencies = [
     "pre-commit>=3.5.0",
     "flake8>=5.0.4",
     "ipython>=8.12.3",
+    "pg_activity[psycopg]>=3.4.2",
+    "pytest>=7.4.3",
 ]
 
 [tool.hatch.metadata]
