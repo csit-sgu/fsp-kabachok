@@ -20,11 +20,11 @@ MESSAGES = {
     },
     Message.FREE_SPACE: {
         "ru": "Слишком мало свободного места на диске",
-        "en": "Too few disk free space",
+        "en": "Disk is almost full",
     },
     Message.NOT_CONNECTED: {
         "ru": "Не удалось подключиться к базе данных",
-        "en": "Could not establish connection with database",
+        "en": "Could not establish database connection",
     },
 }
 
