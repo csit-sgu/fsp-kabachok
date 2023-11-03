@@ -16,6 +16,8 @@ RUN rye sync --no-lock --no-dev
 ENV PACKAGE_PATH="/app/.venv/lib/python3.11/site-packages"
 ENV PATH="/app/.venv/bin:$PATH"
 
+COPY src src
+
 FROM python:3.11-slim as runtime
 
 ENV WD_NAME=/app

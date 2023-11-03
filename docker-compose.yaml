@@ -15,3 +15,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
+  app:
+    container_name: app
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - WEB_CONCURRENCY=$APP_WORKERS
+    depends_on:
+      db:
+        condition: service_healthy
+
