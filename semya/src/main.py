@@ -50,11 +50,6 @@ async def fetch(user_id: int):
     pass
 
 
-@app.get("/api/db/")
-async def retrieve(entry_id: UUID):
-    pass
-
-
 @app.patch("/api/db/")
 async def update(entry_id: UUID):
     pass
