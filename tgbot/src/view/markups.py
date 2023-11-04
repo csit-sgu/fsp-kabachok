@@ -18,6 +18,7 @@ def manage_markup():
         types.KeyboardButton(get_text("ru", Texts.ADD_DATABASES_FROM_FILE))
     )
     markup.add(types.KeyboardButton(get_text("ru", Texts.DELETE_DATABASE)))
-    markup.add(types.KeyboardButton(get_text("ru", Texts.CHANGE_DATABASE)))
+    # TODO(mchernigin): add support for changing records
+    # markup.add(types.KeyboardButton(get_text("ru", Texts.CHANGE_DATABASE)))
 
     return markup
