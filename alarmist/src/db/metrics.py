@@ -4,6 +4,12 @@ import asyncpg
 import databases
 
 
+async def get_max_active_peers(connection: databases.core.Connection) -> int:
+    response = await connection.execute("SHOW max_connections;")
+
+    return int(response)
+
+
 async def get_active_peers_number(
     connection: databases.core.Connection,
 ) -> int:
@@ -52,9 +58,9 @@ async def get_free_space(
             AS $$
                 import shutil
 
-                _total, _used, free = shutil.disk_usage("/")
+                total, _used, free = shutil.disk_usage("/")
 
-                return free / (2**30)
+                return free / total * 100
             $$ LANGUAGE plpython3u;
             """
         )

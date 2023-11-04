@@ -28,6 +28,7 @@ class MetricsLimits(BaseModel):
     ram_usage_threshold: float
     max_active_peers: int
     max_active_peers_delta: float
+    max_active_peers_ratio: float
     max_transaction_duration: float
     max_lwlock_count: int
 

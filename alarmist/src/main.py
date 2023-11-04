@@ -138,12 +138,18 @@ async def healthcheck(source_id: UUID, locale: str):
             )
         ]
 
+    max_active_peers = await metrics.get_max_active_peers(database)
     peers_number = await metrics.get_active_peers_number(database)
-    if peers_number is None or peers_number > metrics_limits.max_active_peers:
+    if (
+        peers_number is None
+        or peers_number
+        > metrics_limits.max_active_peers * max_active_peers_ratio
+    ):
         alerts.append(
             Alert(
                 type=AlertType.ACTIVE_PEERS,
                 message="Слишком много подключений",
+                fields=[peers_number, max_active_peers],
             )
         )
         return alerts
@@ -154,7 +160,11 @@ async def healthcheck(source_id: UUID, locale: str):
         and free_space < metrics_limits.free_space_threshold
     ):
         alerts.append(
-            Alert(type=AlertType.FREE_SPACE, message=Message.FREE_SPACE)
+            Alert(
+                type=AlertType.FREE_SPACE,
+                message=Message.FREE_SPACE,
+                fields=[free_space],
+            )
         )
 
     cpu_usage = await metrics.get_cpu_usage(database)
@@ -162,18 +172,29 @@ async def healthcheck(source_id: UUID, locale: str):
         cpu_usage is not None
         and cpu_usage > metrics_limits.cpu_usage_threshold
     ):
-        alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
+        alerts.append(
+            Alert(type=AlertType.CPU, message=Message.CPU, fields=[cpu_usage])
+        )
 
     lwlock_count = await metrics.get_lwlock_count(database)
     if lwlock_count > metrics_limits.max_lwlock_count:
         alerts.append(
-            Alert(type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT)
+            Alert(
+                type=AlertType.LWLOCK_COUNT,
+                message=Message.LWLOCK_COUNT,
+                fields=[lwlock_count],
+            )
         )
 
-    # TODO: "Transaction with id %pid is running %longest_transaction seconds"
     pid, transaction_duration = await metrics.get_longest_transaction(database)
     if transaction_duration > metrics_limits.max_transaction_duration:
-        alerts.append(Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT))
+        alerts.append(
+            Alert(
+                type=AlertType.TIMEOUT,
+                message=Message.TIMEOUT,
+                fields=[pid, transaction_duration],
+            )
+        )
 
     await database.disconnect()
 

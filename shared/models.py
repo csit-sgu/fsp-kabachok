@@ -44,3 +44,5 @@ class AlertType(Enum):
 class Alert(BaseModel):
     type: AlertType
     message: str
+    # TODO: Set the correct type
+    fields: list
