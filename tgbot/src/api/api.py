@@ -1,6 +1,8 @@
 from typing import List
 from uuid import UUID
 
+import logging
+
 import httpx
 from pydantic import TypeAdapter
 
@@ -37,6 +39,12 @@ class Api:
 
         await self._client.delete(f"{self._url_prefix}/db/{db_id}")
 
+    async def register_user(self, user_id: int, chat_id: int):
+        await self._client.post(
+            f"{self._url_prefix}/user",
+            json={"user_id": user_id, "chat_id": chat_id},
+        )
+
     async def get_states(
         self, *, source_id: UUID, locale="ru"
     ) -> List[Metric]:
@@ -54,12 +62,11 @@ class Api:
         logger.debug(
             f"Api.healthcheck called with params: {source_id=} {locale=}"
         )
-
         validator = TypeAdapter(List[Alert])
         r = await self._client.get(
-            f"{self._url_prefix}/healthcheck/{source_id}"
+            f"{self._url_prefix}/healthcheck/{source_id}?locale={locale}"
         )
-        return validator.validate_json(r)
+        return validator.validate_json(r.text)
 
     async def get_users(self):
         logger.debug(f"Api.get_users called")

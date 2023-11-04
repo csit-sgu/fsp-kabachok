@@ -25,7 +25,14 @@ MESSAGES = {
     },
     Message.ACTIVE_PEERS: {
         "ru": "Слишком много активных подключений",
+        "en": "Too many connections",
     },
-    Message.LWLOCK_COUNT: {"ru": "Слишком много блокировок"},
-    Message.TIMEOUT: {"ru": "Слишком долгая операция"},
+    Message.LWLOCK_COUNT: {
+        "ru": "Слишком много блокировок",
+        "en": "Too many blockings",
+    },
+    Message.TIMEOUT: {
+        "ru": "Слишком долгая операция",
+        "en": "Operation timeout",
+    },
 }
