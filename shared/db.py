@@ -1,12 +1,11 @@
 import logging
 from typing import List, Type
 
-import redis
 from asyncpg.exceptions import UniqueViolationError
 from databases import Database
 from pydantic import BaseModel, TypeAdapter
 
-from shared.resources import DatabaseCredentials, RedisCredentials
+from shared.resources import DatabaseCredentials
 
 logger = logging.getLogger("app")
 
@@ -85,49 +84,3 @@ class PgRepository(AbstractRepository):
 
 def create_db_string(creds: DatabaseCredentials):
     return f"{creds.driver}://{creds.username}:{creds.password}@{creds.url}:{creds.port}/{creds.db_name}"
-
-
-class RedisRepository:
-    def __init__(self, redis: redis.Redis, entity: Type[Entity]):
-        self._redis = redis
-        self._table_name = entity._table_name
-
-    async def add(self, entities: List[Entity]):
-        if not isinstance(entities, list):
-            entities = [entities]
-
-        if entities == []:
-            return
-
-        dumps = list(map(lambda x: x.model_dump(), entities))
-
-        # TODO(granatam): Add logs
-        # self._redis.mset(...)
-
-    async def update(self, entity: Entity, fields: List[str]):
-        dump = entity.model_dump()
-
-        pk = entity._pk
-        query_set = [f"{field} = :{field}" for field in fields]
-        query = f"UPDATE {self._table_name} SET {','.join(query_set)} WHERE {pk} = :{pk}"
-        logger.debug(f"Sending query: {query}")
-        await self._db.execute(
-            query=query, values={k: dump[k] for k in fields} | {pk: dump[pk]}
-        )
-
-    async def get(self, field=None, value=None) -> List[Entity]:
-        query = f"SELECT * FROM {self._table_name}"
-        if field is not None:
-            query += f" WHERE {field} = :{field}"
-            rows = await self._db.fetch_all(query=query, values={field: value})
-        else:
-            rows = await self._db.fetch_all(query=query)
-
-        mapped = map(
-            lambda row: TypeAdapter(self._entity).validate_python(
-                dict(row._mapping)
-            ),
-            rows,
-        )
-
-        return list(mapped)

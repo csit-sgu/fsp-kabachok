@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import List
 from uuid import UUID, uuid4
@@ -7,11 +8,12 @@ import db.metrics as metrics
 import redis
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
+from db.redis import RedisRepository
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
 
-from shared.db import RedisRepository, create_db_string
+from shared.db import PgRepository, create_db_string
 from shared.entities import User
 from shared.logging import configure_logging
 from shared.models import Metric, MetricType
@@ -35,6 +37,12 @@ class Context:
             f"{SHARED_CONFIG_PATH}/settings.json"
         )
 
+        self.pg = Database(create_db_string(self.shared_settings.pg_creds))
+        self.source_repo = PgRepository(self.pg, Source)
+        self.relation_repo = PgRepository(self.pg, UserSource)
+        self.source_view_repo = PgRepository(self.pg, UserSources)
+        self.user_repo = PgRepository(self.pg, User)
+
         redis_creds = self.shared_settings.redis_creds
         self.redis = redis.Redis(
             host=redis_creds.host,
@@ -43,17 +51,19 @@ class Context:
             password=redis_creds.password,
             decode_responses=True,
         )
-        self.source_repo = RedisRepository(self.redis, Source)
-        self.relation_repo = RedisRepository(self.redis, UserSource)
-        self.source_view_repo = RedisRepository(self.redis, UserSources)
-        self.user_repo = RedisRepository(self.redis, User)
+        self.active_peers_repo = RedisRepository(
+            self.redis, MetricType.ACTIVE_PEERS
+        )
+        self.cpu_usage_repo = RedisRepository(self.redis, MetricType.CPU_USAGE)
+        self.disk_space_repo = RedisRepository(
+            self.redis, MetricType.FREE_SPACE
+        )
 
-    # TODO(granatam): Switch to Redis
     async def init_db(self) -> None:
         await self.pg.connect()
 
     async def dispose_db(self) -> None:
-        await self.redis.close()
+        await self.pg.close()
 
 
 ctx = Context()
@@ -67,6 +77,11 @@ async def register(user: User):
 @app.get(AlarmistRoutes.USER.value)
 async def get_all_users():
     return await ctx.user_repo.get()
+
+
+@app.get(AlarmistRoutes.DB.value)
+async def get_all_sources():
+    return await ctx.sources_repo.get()
 
 
 @app.post(AlarmistRoutes.DB.value, status_code=204)
@@ -146,10 +161,23 @@ async def healthcheck(source_id: UUID, locale: str, response: Response):
         collect.check_long_transactions: metrics_limits.max_transaction_duration,
     }
 
+    repos = {
+        collect.check_peers: ctx.active_peers_repo,
+        collect.check_free_space: ctx.disk_space_repo,
+        collect.check_cpu_usage: ctx.cpu_usage_repo,
+        collect.check_lwlocks: None,
+        collect.check_long_transactions: None,
+    }
+
     for task in alert_tasks:
-        ok, alert = await task(source_id, database, metrics[task], locale)
+        ok, alert = await task(
+            source_id, database, metrics[task], locale, repos[task]
+        )
         if not ok:
             alerts.append(alert)
+
+    cpu_usage = await ctx.cpu_usage_repo.get(source_id)
+    logger.debug(f"Cpu usage stats: {cpu_usage}")
 
     await database.disconnect()
     return alerts
