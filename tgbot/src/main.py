@@ -27,9 +27,7 @@ from shared.models import Database, Metric
 
 load_dotenv()
 
-
 logger = logging.getLogger("app")
-
 
 token = os.getenv("BOT_TOKEN")
 backend_url_prefix = os.getenv(
@@ -80,53 +78,53 @@ async def process_start(message):
     )
 
 
-@bot.message_handler(state=BotState.Start)
-async def process_start_message(message):
+@bot.message_handler(state=BotState.Start, func=lambda message: message.text == get_text("ru", Button.GET_STATE.value))
+async def process_get_state(message):
     chat_id = message.chat.id
-    text = message.text
 
-    if text == get_text("ru", Button.GET_STATE.value):
-        chat_id = message.chat.id
-        await bot.set_state(message.from_user.id, BotState.Start, chat_id)
-        await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
-        databases = [
-            SourceModel(id=db.source_id, name=db.display_name)
-            for db in await api.get_db(user_id=message.from_user.id)
-        ]
+    await bot.set_state(message.from_user.id, BotState.Start, chat_id)
+    await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
+    databases = [
+        SourceModel(id=db.source_id, name=db.display_name)
+        for db in await api.get_db(user_id=message.from_user.id)
+    ]
 
-        if not databases:
-            await bot.send_message(chat_id, get_text("ru", Message.NO_DBS))
-            return
+    if not databases:
+        await bot.send_message(chat_id, get_text("ru", Message.NO_DBS))
+        return
 
-        entries = []
-        for db in databases:
-            metrics: List[Metric] = await api.get_states(source_id=db.id)
-            entry: str = "\n".join(
-                list(map(lambda y: f"*{y.type.value}*: {y.value}", metrics))
-            )
-
-            entries.append(
-                get_text("ru", Message.METRICS_ANALYSIS_RESULT)
-                + f"{db.name}\n{entry}"
-            )
-
-        await bot.send_message(
-            message.chat.id, "\n".join(entries), parse_mode="markdown"
+    entries = []
+    for db in databases:
+        metrics: List[Metric] = await api.get_states(source_id=db.id)
+        entry: str = "\n".join(
+            list(map(lambda y: f"*{y.type.value}*: {y.value}", metrics))
         )
 
-    elif text == get_text("ru", Button.MANAGE.value):
-        chat_id = message.chat.id
-        await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
-        await bot.send_message(
-            chat_id,
-            get_text("ru", Message.MANAGE),
-            reply_markup=markup.manage_markup(),
+        entries.append(
+            get_text("ru", Message.METRICS_ANALYSIS_RESULT)
+            + f"{db.name}\n{entry}"
         )
+
+    await bot.send_message(
+        message.chat.id, "\n".join(entries), parse_mode="markdown"
+    )
+
+
+@bot.message_handler(state=BotState.Start, func=lambda message: message.text == get_text("ru", Button.MANAGE.value))
+async def process_manage(message):
+    chat_id = message.chat.id
+
+    await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
+    await bot.send_message(
+        chat_id,
+        get_text("ru", Message.MANAGE),
+        reply_markup=markup.manage_markup(),
+    )
 
 
 @bot.message_handler(
     func=lambda message: message.text
-    == get_text("ru", Button.ADD_DATABASE.value)
+                         == get_text("ru", Button.ADD_DATABASE.value)
 )
 async def process_add_database(message):
     await bot.set_state(
@@ -174,7 +172,7 @@ async def process_db_url(message):
 @bot.message_handler(
     state=BotState.Manage,
     func=lambda message: message.text
-    == get_text("ru", Button.DELETE_DATABASE.value),
+                         == get_text("ru", Button.DELETE_DATABASE.value),
 )
 async def process_delete_db(message):
     await bot.set_state(
@@ -208,9 +206,9 @@ async def process_delete_db(message):
         f"/db{i} {db.name}" for i, db in enumerate(databases, start=1)
     ]
     message_text = (
-        get_text("ru", Message.SELECT_DB)
-        + "\n"
-        + "\n".join(message_text_parts)
+            get_text("ru", Message.SELECT_DB)
+            + "\n"
+            + "\n".join(message_text_parts)
     )
 
     await bot.send_message(
@@ -221,7 +219,7 @@ async def process_delete_db(message):
 @bot.message_handler(
     state=BotState.SelectingDBForDelete,
     func=lambda message: message.text.startswith("/db")
-    and message.text[3:].isnumeric(),
+                         and message.text[3:].isnumeric(),
 )
 async def process_selecting_db_for_delete(message):
     db_number = int(message.text[3:])
@@ -291,7 +289,7 @@ async def process_cancel_delete_db(cb):
 
 @bot.message_handler(
     func=lambda message: message.text
-    == get_text("ru", Button.ADD_DATABASES_FROM_FILE.value)
+                         == get_text("ru", Button.ADD_DATABASES_FROM_FILE.value)
 )
 async def process_add_database_from_file(message):
     await bot.set_state(
