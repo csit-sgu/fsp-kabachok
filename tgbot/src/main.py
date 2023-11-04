@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import httpx
+import telebot
 import view.markups as markup
 from api.api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -44,6 +45,7 @@ bot = AsyncTeleBot(
     token,
     state_storage=storage,
 )
+telebot.logger.setLevel(logging.INFO)
 
 bot.add_custom_filter(StateFilter(bot))
 
@@ -70,6 +72,10 @@ scheduler.add_job(perform_healthcheck, "interval", seconds=10, args=(bot, api))
 
 @bot.message_handler(commands=["start"])
 async def process_start(message):
+    logger.debug(
+        f"process_start: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     chat_id = message.chat.id
     await bot.set_state(message.from_user.id, BotState.Start, chat_id)
     await api.register_user(user_id=message.from_user.id, chat_id=chat_id)
@@ -82,10 +88,16 @@ async def process_start(message):
 
 @bot.message_handler(state=BotState.Start)
 async def process_start_message(message):
+    logger.debug(
+        f"process_start_message: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     chat_id = message.chat.id
     text = message.text
 
     if text == get_text("ru", Button.GET_STATE.value):
+        logger.debug(f"GET_STATE button")
+
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Start, chat_id)
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
@@ -115,6 +127,8 @@ async def process_start_message(message):
         )
 
     elif text == get_text("ru", Button.MANAGE.value):
+        logger.debug(f"MANAGE button")
+
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
         await bot.send_message(
@@ -129,6 +143,10 @@ async def process_start_message(message):
     == get_text("ru", Button.ADD_DATABASE.value)
 )
 async def process_add_database(message):
+    logger.debug(
+        f"process_add_database: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     await bot.set_state(
         message.from_user.id, BotState.EnteringDBName, message.chat.id
     )
@@ -141,6 +159,10 @@ async def process_add_database(message):
 
 @bot.message_handler(state=BotState.EnteringDBName)
 async def process_db_name(message):
+    logger.debug(
+        f"process_db_name: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     await bot.add_data(
         message.from_user.id, message.chat.id, db_name=message.text
     )
@@ -154,6 +176,10 @@ async def process_db_name(message):
 
 @bot.message_handler(state=BotState.EnteringDBURL)
 async def process_db_url(message):
+    logger.debug(
+        f"process_db_url: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     data = await storage.get_data(message.from_user.id, message.chat.id)
 
     db_name = data["db_name"]
@@ -177,6 +203,10 @@ async def process_db_url(message):
     == get_text("ru", Button.DELETE_DATABASE.value),
 )
 async def process_delete_db(message):
+    logger.debug(
+        f"process_delete_db: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     await bot.set_state(
         message.from_user.id, BotState.SelectingDBForDelete, message.chat.id
     )
@@ -187,6 +217,8 @@ async def process_delete_db(message):
     ]
 
     if not databases:
+        logger.debug(f"process_delete_db: no databases")
+
         await bot.set_state(
             message.from_user.id, BotState.Start, message.chat.id
         )
@@ -224,6 +256,10 @@ async def process_delete_db(message):
     and message.text[3:].isnumeric(),
 )
 async def process_selecting_db_for_delete(message):
+    logger.debug(
+        f"process_selecting_db_for_delete: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     db_number = int(message.text[3:])
 
     data = await storage.get_data(message.from_user.id, message.chat.id)
@@ -255,6 +291,10 @@ async def process_selecting_db_for_delete(message):
     func=lambda cb: cb.data.startswith("deldb_"),
 )
 async def process_delete_db(cb):
+    logger.debug(
+        f"process_delete_db: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     data = await storage.get_data(cb.message.chat.id, cb.message.chat.id)
     db_number, db_id = cb.data[6:].split("_")
     db_number = int(db_number)
@@ -278,6 +318,10 @@ async def process_delete_db(cb):
     func=lambda cb: cb.data.startswith("cancel_deldb"),
 )
 async def process_cancel_delete_db(cb):
+    logger.debug(
+        f"process_cancel_delete_db: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     await bot.answer_callback_query(cb.id)
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
     await bot.send_message(
@@ -294,6 +338,10 @@ async def process_cancel_delete_db(cb):
     == get_text("ru", Button.ADD_DATABASES_FROM_FILE.value)
 )
 async def process_add_database_from_file(message):
+    logger.debug(
+        f"process_add_database_from_file: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     await bot.set_state(
         message.from_user.id, BotState.UploadingDBFile, message.chat.id
     )
@@ -310,6 +358,10 @@ async def process_add_database_from_file(message):
     content_types=["document"], state=BotState.UploadingDBFile
 )
 async def process_uploading_db_file(message):
+    logger.debug(
+        f"process_uploading_db_file: user is {message.from_user.id} {message.from_user.name}"
+    )
+
     # NOTE(nrydanov): Why is this variable is unused?
     file_name = message.document.file_name
     file_info = await bot.get_file(message.document.file_id)
