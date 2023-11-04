@@ -50,9 +50,9 @@ async def get_free_space(
         AS $$
             import shutil
 
-            _total, _used, free = shutil.disk_usage("/")
+            total, _used, free = shutil.disk_usage("/")
 
-            return free / (2**30)
+            return free / total * 100
         $$ LANGUAGE plpython3u;
         """
     )

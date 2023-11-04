@@ -124,13 +124,21 @@ async def healthcheck(source_id: UUID, locale: str):
             if free_space < metrics_limits.free_space_threshold:
                 alerts.append(
                     Alert(
-                        type=AlertType.FREE_SPACE, message=Message.FREE_SPACE
+                        type=AlertType.FREE_SPACE,
+                        message=Message.FREE_SPACE,
+                        fields=[free_space],
                     )
                 )
 
             cpu_usage = await metrics.get_cpu_usage(database)
             if cpu_usage > metrics_limits.cpu_usage_threshold:
-                alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
+                alerts.append(
+                    Alert(
+                        type=AlertType.CPU,
+                        message=Message.CPU,
+                        fields=[cpu_usage],
+                    )
+                )
         except:
             # TODO(nrydanpov): Add proper handling
             pass
@@ -143,7 +151,9 @@ async def healthcheck(source_id: UUID, locale: str):
         ):
             alerts.append(
                 Alert(
-                    type=AlertType.ACTIVE_PEERS, message=Message.ACTIVE_PEERS
+                    type=AlertType.ACTIVE_PEERS,
+                    message=Message.ACTIVE_PEERS,
+                    fields=[peers_number, max_active_peers],
                 )
             )
 
@@ -151,7 +161,9 @@ async def healthcheck(source_id: UUID, locale: str):
         if lwlock_count > metrics_limits.max_lwlock_count:
             alerts.append(
                 Alert(
-                    type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT
+                    type=AlertType.LWLOCK_COUNT,
+                    message=Message.LWLOCK_COUNT,
+                    fields=lwlock_count,
                 )
             )
 
@@ -161,7 +173,11 @@ async def healthcheck(source_id: UUID, locale: str):
         )
         if transaction_duration > metrics_limits.max_transaction_duration:
             alerts.append(
-                Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT)
+                Alert(
+                    type=AlertType.TIMEOUT,
+                    message=Message.TIMEOUT,
+                    fields=[pid, transaction_duration],
+                )
             )
 
         return alerts
