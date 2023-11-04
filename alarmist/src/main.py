@@ -1,15 +1,15 @@
 import logging
-import asyncpg
 from typing import List
 from uuid import UUID, uuid4
 
+import asyncpg
 import db.metrics as metrics
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
-from utils import Message, MESSAGES
+from utils import MESSAGES, Message
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User
@@ -127,7 +127,9 @@ async def healthcheck(source_id: UUID, locale: str):
 
     if not database.is_connected:
         return list(
-            Alert(type=AlertType.NOT_CONNECTED, message="Подключение невозможно")
+            Alert(
+                type=AlertType.NOT_CONNECTED, message="Подключение невозможно"
+            )
         )
 
     peers_number = await metrics.get_active_peers_number(database)

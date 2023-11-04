@@ -308,8 +308,6 @@ async def process_add_database_from_file(message):
     content_types=["document"], state=BotState.UploadingDBFile
 )
 async def process_uploading_db_file(message):
-    # NOTE(nrydanov): Why is this variable is unused?
-    file_name = message.document.file_name
     file_info = await bot.get_file(message.document.file_id)
     downloaded_file = await bot.download_file(file_info.file_path)
 
