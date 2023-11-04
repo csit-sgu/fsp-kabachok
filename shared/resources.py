@@ -28,11 +28,17 @@ class MetricsLimits(BaseModel):
     ram_usage_threshold: float
     max_active_peers: int
     max_active_peers_delta: float
+    max_active_peers_ratio: float
     max_transaction_duration: float
     max_lwlock_count: int
 
 
+class WatchdogSettings(BaseModel):
+    disable_healthcheck: bool
+    interval: int
+
+
 class SharedResources(JSONSettings):
     pg_creds: DatabaseCredentials
-    alarm_interval: int
+    watchdog: WatchdogSettings
     metrics: MetricsLimits

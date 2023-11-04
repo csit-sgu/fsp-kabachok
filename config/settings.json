@@ -12,11 +12,15 @@
         "free_space_threshold": 10,
         "ram_usage_threshold": 90,
         "max_active_peers_delta": 200,
+        "max_active_peers_ratio": 0.9,
         "max_active_peers": 100,
         "max_lwlock_count": 10,
         "max_transaction_duration": 100
     },
-    "alarm_interval": 3,
+    "watchdog": {
+        "disable_healthcheck": true,
+        "interval": 3
+    },
     "logger" : {
         "version": 1,
         "disable_existing_loggers": false,

@@ -2,19 +2,18 @@ import logging
 from typing import List
 from uuid import UUID, uuid4
 
-import asyncpg
+import collect
 import db.metrics as metrics
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
-from utils import MESSAGES, Message
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User
 from shared.logging import configure_logging
-from shared.models import Alert, AlertType, Metric, MetricType
+from shared.models import Metric, MetricType
 from shared.resources import SharedResources
 from shared.routes import AlarmistRoutes
 from shared.utils import SHARED_CONFIG_PATH
@@ -107,126 +106,66 @@ async def remove(source_id: UUID):
 
 
 @app.get(AlarmistRoutes.HEALTHCHECK.value + "{source_id}")
-async def healthcheck(source_id: UUID, locale: str):
+async def healthcheck(source_id: UUID, locale: str, response: Response):
     metrics_limits = ctx.shared_settings.metrics
     source: Source = (await retrieve(source_id))[0]
 
-    try:
-        database = Database(source.conn_string)
-        await database.connect()
-    except KeyError:
-        return [
-            Alert(
-                type=AlertType.BAD_CONN_STING,
-                message="Некорректная строка подключения к БД",
-            )
-        ]
-    except asyncpg.exceptions.TooManyConnectionsError:
-        return [
-            Alert(
-                type=AlertType.ACTIVE_PEERS,
-                message="Достигнуто максимальное количество подключений",
-            )
-        ]
+    ok, r = await collect.try_connect(source_id, source, locale)
+
+    if not ok:
+        response.status_code = 400
+        return r
+
+    database = r
 
     alerts = list()
 
-    if not database.is_connected:
-        return [
-            Alert(
-                type=AlertType.NOT_CONNECTED, message="Подключение невозможно"
-            )
-        ]
+    alert_tasks = [
+        collect.check_peers,
+        collect.check_free_space,
+        collect.check_cpu_usage,
+        collect.check_lwlocks,
+        collect.check_long_transactions,
+    ]
 
-    peers_number = await metrics.get_active_peers_number(database)
-    if peers_number is None or peers_number > metrics_limits.max_active_peers:
-        alerts.append(
-            Alert(
-                type=AlertType.ACTIVE_PEERS,
-                message="Слишком много подключений",
-            )
-        )
-        return alerts
+    metrics = {
+        collect.check_peers: metrics_limits.max_active_peers_ratio,
+        collect.check_free_space: metrics_limits.free_space_threshold,
+        collect.check_cpu_usage: metrics_limits.cpu_usage_threshold,
+        collect.check_lwlocks: metrics_limits.max_lwlock_count,
+        collect.check_long_transactions: metrics_limits.max_transaction_duration,
+    }
 
-    free_space = await metrics.get_free_space(database)
-    if (
-        free_space is not None
-        and free_space < metrics_limits.free_space_threshold
-    ):
-        alerts.append(
-            Alert(type=AlertType.FREE_SPACE, message=Message.FREE_SPACE)
-        )
-
-    cpu_usage = await metrics.get_cpu_usage(database)
-    if (
-        cpu_usage is not None
-        and cpu_usage > metrics_limits.cpu_usage_threshold
-    ):
-        alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
-
-    lwlock_count = await metrics.get_lwlock_count(database)
-    if lwlock_count > metrics_limits.max_lwlock_count:
-        alerts.append(
-            Alert(type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT)
-        )
-
-    # TODO: "Transaction with id %pid is running %longest_transaction seconds"
-    pid, transaction_duration = await metrics.get_longest_transaction(database)
-    if transaction_duration > metrics_limits.max_transaction_duration:
-        alerts.append(Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT))
+    for task in alert_tasks:
+        ok, alert = await task(source_id, database, metrics[task], locale)
+        if not ok:
+            alerts.append(alert)
 
     await database.disconnect()
-
     return alerts
 
 
 @app.get(AlarmistRoutes.STATE.value + "{source_id}")
-async def get_state(source_id: UUID, locale: str):
+async def get_state(source_id: UUID, locale: str, response: Response):
     source: Source = (await retrieve(source_id))[0]
 
-    try:
-        database = Database(source.conn_string)
-        await database.connect()
-    except KeyError:
-        return Response(
-            status_code=400,
-            content=Alert(
-                type=AlertType.BAD_CONN_STING,
-                message=MESSAGES[Message.BAD_CONN_STING][locale],
-            ),
-        )
-    except asyncpg.exceptions.TooManyConnectionsError:
-        return Response(
-            status_code=400,
-            content=Alert(
-                type=AlertType.ACTIVE_PEERS,
-                message=MESSAGES[Message.ACTIVE_PEERS][locale],
-            ),
-        )
+    ok, r = await collect.try_connect(source_id, source, locale)
 
-    if not database.is_connected:
-        # TODO(granatam): Change status code
-        return Response(
-            status_code=400,
-            content=Alert(
-                type=AlertType.NOT_CONNECTED,
-                message=MESSAGES[Message.NOT_CONNECTED][locale],
-            ),
-        )
+    if not ok:
+        response.status_code = 400
+        return r
 
-    try:
-        free_space = Metric(
-            type=MetricType.FREE_SPACE,
-            value=await metrics.get_free_space(database),
-        )
-        cpu_usage = Metric(
-            tyoe=MetricType.CPU_USAGE,
-            value=await metrics.get_cpu_usage(database),
-        )
+    database = r
+
+    free_space = Metric(
+        type=MetricType.FREE_SPACE,
+        value=await metrics.get_free_space(database),
+    )
+    cpu_usage = Metric(
+        tyoe=MetricType.CPU_USAGE,
+        value=await metrics.get_cpu_usage(database),
+    )
     # TODO(nrydanov): Add proper handling
-    except:
-        free_space = Metric(type=MetricType.FREE_SPACE, value=None)
-        cpu_usage = Metric(type=MetricType.CPU_USAGE, value=None)
     active_peers = Metric(
         type=MetricType.ACTIVE_PEERS,
         value=await metrics.get_active_peers_number(database),
