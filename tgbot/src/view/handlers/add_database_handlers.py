@@ -1,11 +1,10 @@
+from api import Api
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateStorageBase
 from telebot.types import ReplyKeyboardRemove
-
-from tgbot.src.api.api import Api
-from tgbot.src.view import markups
-from tgbot.src.view.states import BotState
-from tgbot.src.view.texts import Texts, get_text
+from view import markups
+from view.states import BotState
+from view.texts import Texts, get_text
 
 
 def register_add_database_handlers(

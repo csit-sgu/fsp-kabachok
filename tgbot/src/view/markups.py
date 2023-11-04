@@ -1,6 +1,5 @@
 from telebot import types
-
-from tgbot.src.view.texts import Texts, get_text
+from view.texts import Texts, get_text
 
 
 def start_markup():

@@ -1,3 +1,5 @@
+from api import Api
+from models import SourceModel
 from pydantic import TypeAdapter
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateStorageBase
@@ -6,12 +8,9 @@ from telebot.types import (
     InlineKeyboardMarkup,
     ReplyKeyboardRemove,
 )
-
-from tgbot.src.api.api import Api
-from tgbot.src.models import SourceModel
-from tgbot.src.view import markups
-from tgbot.src.view.states import BotState
-from tgbot.src.view.texts import Texts, get_text
+from view import markups
+from view.states import BotState
+from view.texts import Texts, get_text
 
 
 def register_delete_database_handlers(

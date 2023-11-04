@@ -7,6 +7,7 @@ from pydantic import TypeAdapter
 
 from shared.entities import User
 from shared.models import Alert, Database, Metric
+from shared.routes import AlarmistRoutes
 
 logger = logging.getLogger("app")
 
@@ -24,23 +25,29 @@ class Api:
         data = dict(
             user_id=user_id, display_name=display_name, conn_string=db_url
         )
-        await self._client.post(f"{self._url_prefix}/db/", json=data)
+        await self._client.post(
+            f"{self._url_prefix}{AlarmistRoutes.DB.value}", json=data
+        )
 
     async def get_db(self, *, user_id: int) -> List[Database]:
         logger.debug(f"Api.get_db called with params: {user_id=}")
 
-        r = await self._client.get(f"{self._url_prefix}/users/{user_id}/db")
+        r = await self._client.get(
+            f"{self._url_prefix}{AlarmistRoutes.USER.value}{user_id}/db"
+        )
         validator = TypeAdapter(list[Database])
         return validator.validate_json(r.text)
 
     async def remove_db(self, db_id: UUID):
         logger.debug(f"Api.remove_db called with params: {db_id=}")
 
-        await self._client.delete(f"{self._url_prefix}/db/{db_id}")
+        await self._client.delete(
+            f"{self._url_prefix}{AlarmistRoutes.DB.value}{db_id}"
+        )
 
     async def register_user(self, user_id: int, chat_id: int):
         await self._client.post(
-            f"{self._url_prefix}/user",
+            f"{self._url_prefix}{AlarmistRoutes.USER.value}",
             json={"user_id": user_id, "chat_id": chat_id},
         )
 
@@ -53,7 +60,7 @@ class Api:
 
         validator = TypeAdapter(List[Metric])
         r = await self._client.get(
-            f"{self._url_prefix}/state/{source_id}?locale={locale}"
+            f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}?locale={locale}"
         )
         return validator.validate_json(r.text)
 
@@ -63,7 +70,7 @@ class Api:
         )
         validator = TypeAdapter(List[Alert] | None)
         r = await self._client.get(
-            f"{self._url_prefix}/healthcheck/{source_id}?locale={locale}"
+            f"{self._url_prefix}{AlarmistRoutes.HEALTHCHECK.value}{source_id}?locale={locale}"
         )
         return validator.validate_json(r.text)
 
@@ -71,5 +78,7 @@ class Api:
         logger.debug("Api.get_users called")
 
         validator = TypeAdapter(List[User])
-        r = await self._client.get(f"{self._url_prefix}/user")
+        url = f"{self._url_prefix}{AlarmistRoutes.USER.value}"
+        logger.debug(f"Sending GET request to {url}")
+        r = await self._client.get(url)
         return validator.validate_json(r.text)

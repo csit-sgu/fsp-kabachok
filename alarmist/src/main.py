@@ -16,6 +16,7 @@ from shared.entities import User
 from shared.logging import configure_logging
 from shared.models import Alert, AlertType, Metric, MetricType
 from shared.resources import SharedResources
+from shared.routes import AlarmistRoutes
 from shared.utils import SHARED_CONFIG_PATH
 
 app = FastAPI()
@@ -49,17 +50,17 @@ class Context:
 ctx = Context()
 
 
-@app.post("/api/user", status_code=204)
+@app.post(AlarmistRoutes.USER.value, status_code=204)
 async def register(user: User):
     await ctx.user_repo.add(user, ignore_conflict=True)
 
 
-@app.get("/api/user")
+@app.get(AlarmistRoutes.USER.value)
 async def get_all_users():
     return await ctx.user_repo.get()
 
 
-@app.post("/api/db/", status_code=204)
+@app.post(AlarmistRoutes.DB.value, status_code=204)
 async def submit(entry: SubmitDatabaseRequest):
     uuid = uuid4()
     await ctx.source_repo.add(
@@ -74,18 +75,18 @@ async def submit(entry: SubmitDatabaseRequest):
     )
 
 
-@app.get("/api/users/{user_id}/db")
+@app.get(AlarmistRoutes.USER.value + "{user_id}/db")
 async def fetch(user_id: int):
     result = await ctx.source_view_repo.get(field="user_id", value=user_id)
     return list(filter(lambda x: not x.inactive, result))
 
 
-@app.get("/api/db/{source_id}")
+@app.get(AlarmistRoutes.DB.value + "{source_id}")
 async def retrieve(source_id: UUID) -> List[Source]:
     return await ctx.source_repo.get(field="source_id", value=source_id)
 
 
-@app.patch("/api/db/{source_id}", status_code=204)
+@app.patch(AlarmistRoutes.DB.value + "{source_id}", status_code=204)
 async def update(source_id: UUID, entry: PatchDatabaseRequest):
     await ctx.source_repo.update(
         Source(
@@ -98,14 +99,14 @@ async def update(source_id: UUID, entry: PatchDatabaseRequest):
     )
 
 
-@app.delete("/api/db/{source_id}")
+@app.delete(AlarmistRoutes.DB.value + "{source_id}")
 async def remove(source_id: UUID):
     source = (await retrieve(source_id))[0]
     source.inactive = True
     await ctx.source_repo.update(source, fields=["inactive"])
 
 
-@app.get("/api/healthcheck/{source_id}")
+@app.get(AlarmistRoutes.HEALTHCHECK.value + "{source_id}")
 async def healthcheck(source_id: UUID, locale: str):
     metrics_limits = ctx.shared_settings.metrics
     source: Source = (await retrieve(source_id))[0]
@@ -179,7 +180,7 @@ async def healthcheck(source_id: UUID, locale: str):
     return alerts
 
 
-@app.get("/api/state/{source_id}")
+@app.get(AlarmistRoutes.STATE.value + "{source_id}")
 async def get_state(source_id: UUID, locale: str):
     source: Source = (await retrieve(source_id))[0]
 

@@ -34,4 +34,5 @@ class MetricsLimits(BaseModel):
 
 class SharedResources(JSONSettings):
     pg_creds: DatabaseCredentials
+    alarm_interval: int
     metrics: MetricsLimits

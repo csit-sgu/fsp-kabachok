@@ -1,12 +1,11 @@
+from api import Api
+from models import DatabaseFromFile
 from pydantic import TypeAdapter
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import ReplyKeyboardRemove
-
-from tgbot.src.api.api import Api
-from tgbot.src.models import DatabaseFromFile
-from tgbot.src.view import markups
-from tgbot.src.view.states import BotState
-from tgbot.src.view.texts import Texts, get_text
+from view import markups
+from view.states import BotState
+from view.texts import Texts, get_text
 
 
 def register_add_database_from_file_handlers(bot: AsyncTeleBot, api: Api):

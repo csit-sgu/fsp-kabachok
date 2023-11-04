@@ -25,7 +25,7 @@ services:
     volumes:
       - ./config:/config
     environment:
-      - BACKEND_URL_PREFIX=http://alarmist:8000/api
+      - BACKEND_URL=http://alarmist:8000
     env_file:
       - .env
     depends_on:

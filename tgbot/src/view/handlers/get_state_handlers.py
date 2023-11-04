@@ -1,10 +1,10 @@
+from api import Api
+from models import SourceModel
 from telebot.async_telebot import AsyncTeleBot
+from view.states import BotState
+from view.texts import Texts, get_text
 
 from shared.models import Metric
-from tgbot.src.api.api import Api
-from tgbot.src.models import SourceModel
-from tgbot.src.view.states import BotState
-from tgbot.src.view.texts import Texts, get_text
 
 
 def register_get_state_handlers(bot: AsyncTeleBot, api: Api):

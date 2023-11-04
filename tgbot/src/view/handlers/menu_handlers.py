@@ -1,10 +1,9 @@
+from api import Api
 from telebot import types
 from telebot.async_telebot import AsyncTeleBot
-
-from tgbot.src.api.api import Api
-from tgbot.src.view import markups
-from tgbot.src.view.states import BotState
-from tgbot.src.view.texts import Texts, get_text
+from view import markups
+from view.states import BotState
+from view.texts import Texts, get_text
 
 
 def register_menu_handlers(bot: AsyncTeleBot, api: Api):
