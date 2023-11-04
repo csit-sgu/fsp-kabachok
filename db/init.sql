@@ -6,7 +6,7 @@ CREATE TABLE users (
     user_id bigint NOT NULL,
     chat_id bigint NOT NULL,
 
-    PRIMARY KEY user_id
+    PRIMARY KEY (user_id)
 );
 
 CREATE TABLE source (
