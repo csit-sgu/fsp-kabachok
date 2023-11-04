@@ -8,7 +8,6 @@ from api.api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from pydantic import TypeAdapter
-from states import BotState
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_filters import StateFilter
 from telebot.asyncio_storage import StatePickleStorage
@@ -18,11 +17,12 @@ from telebot.types import (
     ReplyKeyboardRemove,
 )
 from view.messages import Message, get_text
-from view.models import DatabaseFromFile, SourceModel
 
 from shared.entities import User
 from shared.logging import configure_logging
 from shared.models import Database, Metric
+from tgbot.src.models import DatabaseFromFile, SourceModel
+from tgbot.src.view.states import BotState
 
 load_dotenv()
 
