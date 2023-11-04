@@ -99,8 +99,10 @@ async def process_start_message(message):
                 list(map(lambda y: f"*{y.type.value}*: {y.value}", metrics))
             )
 
-            # TODO(nrydanov): Убрать хардкод
-            entries.append(f"Результат анализа метрик для {db.name}\n{entry}")
+            entries.append(
+                get_text("ru", Message.METRICS_ANALYSIS_RESULT)
+                + f"{db.name}\n{entry}"
+            )
 
         await bot.send_message(
             message.chat.id, "\n".join(entries), parse_mode="markdown"
