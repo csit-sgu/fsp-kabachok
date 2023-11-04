@@ -38,11 +38,8 @@ class AlertType(Enum):
     UNAVAILABLE = "unavailable"
     ACTIVE_PEERS = "active_peers"
     LWLOCK_COUNT = "lwlock_count"
-    BAD_CONN_STING = "bad_conn_string"
 
 
 class Alert(BaseModel):
     type: AlertType
     message: str
-    # TODO: Set the correct type
-    fields: list
