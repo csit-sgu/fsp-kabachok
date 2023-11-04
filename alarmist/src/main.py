@@ -47,10 +47,11 @@ class Context:
         self.redis = redis.Redis(
             host=redis_creds.host,
             port=redis_creds.port,
-            username=redis_creds.username,
-            password=redis_creds.password,
+            # username=redis_creds.username,
+            # password=redis_creds.password,
             decode_responses=True,
         )
+
         self.active_peers_repo = RedisRepository(
             self.redis, MetricType.ACTIVE_PEERS
         )
@@ -63,7 +64,7 @@ class Context:
         await self.pg.connect()
 
     async def dispose_db(self) -> None:
-        await self.pg.close()
+        await self.pg.disconnect()
 
 
 ctx = Context()

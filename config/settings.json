@@ -2,8 +2,8 @@
     "redis_creds": {
         "username": "redis",
         "password": "1234",
-        "host": "db",
-        "port": "5432"
+        "host": "redis",
+        "port": "6379"
     },
     "pg_creds": {
         "driver": "postgres",
