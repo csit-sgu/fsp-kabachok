@@ -1,0 +1,26 @@
+[
+    {
+        "display_name": "CPU Playground",
+        "db_url": "postgres://postgres:1234@cpu_playground:5432/playground"
+    },
+    {
+        "display_name": "RAM Playground",
+        "db_url": "postgres://postgres:1234@ram_playground:5432/playground"
+    },
+    {
+        "display_name": "Connection Playground",
+        "db_url": "postgres://postgres:1234@connection_playground:5432/playground"
+    },
+    {
+        "display_name": "Storage Playground",
+        "db_url": "postgres://postgres:1234@storage_playground:5432/playground"
+    },
+    {
+        "display_name": "LWLock Playground",
+        "db_url": "postgres://postgres:1234@lwlock_playground:5432/playground"
+    },
+    {
+        "display_name": "Timeout Playground",
+        "db_url": "postgres://postgres:1234@timeout_playground:5432/playground"
+    }
+]
