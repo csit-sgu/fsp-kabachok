@@ -6,22 +6,13 @@ import httpx
 from api.api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
-from pydantic import TypeAdapter
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_filters import StateFilter
 from telebot.asyncio_storage import StatePickleStorage
-from telebot.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    ReplyKeyboardRemove,
-)
-from view.texts import Texts, get_text
 
 from shared.entities import User
 from shared.logging import configure_logging
-from shared.models import Database, Metric
-from tgbot.src.models import DatabaseFromFile, SourceModel
-from tgbot.src.view import markups
+from shared.models import Database
 from tgbot.src.view.handlers.add_database_from_file_handlers import (
     register_add_database_from_file_handlers,
 )
@@ -35,7 +26,6 @@ from tgbot.src.view.handlers.get_state_handlers import (
     register_get_state_handlers,
 )
 from tgbot.src.view.handlers.menu_handlers import register_menu_handlers
-from tgbot.src.view.states import BotState
 
 load_dotenv()
 
