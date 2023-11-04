@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import httpx
+import telebot
 from api.api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
@@ -44,6 +45,7 @@ bot = AsyncTeleBot(
     token,
     state_storage=storage,
 )
+telebot.logger.setLevel(logging.INFO)
 
 bot.add_custom_filter(StateFilter(bot))
 
