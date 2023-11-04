@@ -3,7 +3,7 @@
         "driver": "postgres",
         "username": "postgres",
         "password": "1234",
-        "url": "db",
+        "url": "localhost",
         "port": "5432",
         "db_name": "ogorod"
     },

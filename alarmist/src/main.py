@@ -93,41 +93,45 @@ async def remove(source_id: UUID):
     await ctx.source_repo.update(source, fields=["inactive"])
 
 
-@app.post("/api/healthcheck/{source_id}/{locale}")
+@app.get("/api/healthcheck/{source_id}")
 async def healthcheck(source_id: UUID, locale: str):
     metrics_limits = ctx.shared_settings.metrics
-    source: Source = await retrieve(source_id)
+    source: Source = (await retrieve(source_id))[0]
 
-    database = Database(source.conn_string)
-    await database.connect()
+    async with Database(source.conn_string) as database:
+        if not database.is_connected:
+            return list(Alert(Message.NOT_CONNECTED, locale))
 
-    if not database.is_connected:
-        return list(Alert(Message.NOT_CONNECTED, locale))
+        alerts = list()
 
-    alerts = list()
+        try:
+            free_space = await metrics.get_free_space(database)
+            if free_space < metrics_limits.free_space_threshold:
+                alerts.append(Alert(Message.FREE_SPACE, locale))
 
-    free_space = metrics.get_free_space(database)
-    if free_space < metrics_limits.free_space_threshold:
-        alerts.append(Alert(Message.FREE_SPACE, locale))
+            cpu_usage = await metrics.get_cpu_usage(database)
+            if cpu_usage > metrics_limits.cpu_usage_threshold:
+                alerts.append(Alert(Message.CPU_USAGE, locale))
+        except:
+            # TODO(nrydanpov): Add proper handling
+            pass
 
-    cpu_usage = metrics.get_cpu_usage(database)
-    if cpu_usage > metrics_limits.cpu_usage_threshold:
-        alerts.append(Alert(Message.CPU_USAGE, locale))
+        peers_number = await metrics.get_active_peers_number(database)
+        if peers_number > metrics_limits.max_active_peers_delta:
+            alerts.append(Alert(Message.ACTIVE_PEERS, locale))
 
-    peers_number = metrics.get_active_peers_number(database)
-    if peers_number > metrics_limits.max_active_peers_delta:
-        alerts.append(Alert(Message.ACTIVE_PEERS, locale))
+        lwlock_count = await metrics.get_lwlock_count(database)
+        if lwlock_count > metrics_limits.max_lwlock_count:
+            alerts.append(Alert(Message.LWLOCK_COUNT, locale))
 
-    lwlock_count = metrics.get_lwlock_count(database)
-    if lwlock_count > metrics_limits.max_lwlock_count:
-        alerts.append(Alert(Message.LWLOCK_COUNT, locale))
+        # TODO: "Transaction with id %pid is running %longest_transaction seconds"
+        pid, transaction_duration = await metrics.get_longest_transaction(
+            database
+        )
+        if transaction_duration > metrics_limits.max_transaction_duration:
+            alerts.append(Alert(Message.MAX_TRANSACTION_DURATION, locale))
 
-    # TODO: "Transaction with id %pid is running %longest_transaction seconds"
-    pid, transaction_duration = metrics.get_longest_transaction(database)
-    if transaction_duration > metrics_limits.max_transaction_duration:
-        alerts.append(Alert(Message.MAX_TRANSACTION_DURATION, locale))
-
-    return alerts
+        return alerts
 
 
 @app.get("/api/state/{source_id}")

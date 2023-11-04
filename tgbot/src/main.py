@@ -61,7 +61,7 @@ async def process_start_message(message):
         await bot.set_state(message.from_user.id, BotState.Start, chat_id)
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
         databases = [
-            SourceModel(db.source_id, db.display_name)
+            SourceModel(id=db.source_id, name=db.display_name)
             for db in await database_api.get_dbs(user_id=message.from_user.id)
         ]
 
@@ -149,7 +149,7 @@ async def process_delete_db(message):
     )
 
     databases = [
-        SourceModel(db.source_id, db.display_name)
+        SourceModel(id=db.source_id, name=db.display_name)
         for db in await database_api.get_dbs(user_id=message.from_user.id)
     ]
 
@@ -194,7 +194,7 @@ async def process_selecting_db_for_delete(message):
     db_number = int(message.text[3:])
 
     data = await storage.get_data(message.from_user.id, message.chat.id)
-    db = SourceModel.from_dict(data["databases"][db_number])
+    db = TypeAdapter(SourceModel).validate_python(data["databases"][db_number])
 
     kb = InlineKeyboardMarkup()
     kb.row_width = 2
@@ -226,7 +226,7 @@ async def process_delete_db(cb):
     db_number, db_id = cb.data[6:].split("_")
     db_number = int(db_number)
 
-    db = SourceModel.from_dict(data["databases"][db_number])
+    db = TypeAdapter(SourceModel).validate_python(data["databases"][db_number])
 
     await database_api.remove_db(db.id)
     await bot.answer_callback_query(cb.id)
@@ -277,6 +277,7 @@ async def process_add_database_from_file(message):
     content_types=["document"], state=BotState.UploadingDBFile
 )
 async def process_uploading_db_file(message):
+    # NOTE(nrydanov): Why is this variable is unused?
     file_name = message.document.file_name
     file_info = await bot.get_file(message.document.file_id)
     downloaded_file = await bot.download_file(file_info.file_path)
