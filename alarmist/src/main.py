@@ -135,8 +135,9 @@ async def healthcheck(source_id: UUID, locale: str):
             # TODO(nrydanpov): Add proper handling
             pass
 
+        max_active_peers = await metrics.get_max_active_peers(database)
         peers_number = await metrics.get_active_peers_number(database)
-        if peers_number > metrics_limits.max_active_peers_delta:
+        if peers_number > max_active_peers * 0.95:
             alerts.append(
                 Alert(
                     type=AlertType.ACTIVE_PEERS, message=Message.ACTIVE_PEERS
