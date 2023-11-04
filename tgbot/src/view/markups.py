@@ -1,6 +1,6 @@
 from telebot import types
-from view.messages import get_text
-from view.utils import Button
+from tgbot.src.view.messages import get_text
+from tgbot.src.view.utils import Button
 
 
 def start_markup():

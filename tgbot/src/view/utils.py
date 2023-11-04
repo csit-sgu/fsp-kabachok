@@ -1,6 +1,6 @@
 from enum import Enum
 
-from view.messages import Message
+from tgbot.src.view.messages import Message
 
 
 class Button(Enum):
