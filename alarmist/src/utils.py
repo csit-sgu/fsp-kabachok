@@ -22,9 +22,3 @@ MESSAGES = {
         "en": "Could not establish database connection",
     },
 }
-
-
-class Alert:
-    def __init__(self, type: Message, locale: str):
-        self.type = type
-        self.message = MESSAGES[type][locale]

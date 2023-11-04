@@ -2,9 +2,9 @@ CREATE DATABASE ogorod;
 
 \c ogorod
 
-CREATE TABLE user (
+CREATE TABLE users (
     user_id bigint NOT NULL
-)
+);
 
 CREATE TABLE source (
     source_id uuid PRIMARY KEY,

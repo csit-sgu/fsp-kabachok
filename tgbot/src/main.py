@@ -52,6 +52,10 @@ async def perform_healthcheck(bot: AsyncTeleBot, api: Api):
     users: List[User] = await api.get_users()
     for user in users:
         db_objects: List[Database] = await api.get_db(user.user_id)
+        for db in db_objects:
+            # NOTE(nrydanov): Write according method in API sections
+            # and use it here, and, finally, send messages to all users
+            pass
 
     logger.info("Performing scheduled healthcheck!")
 
@@ -322,7 +326,8 @@ if __name__ == "__main__":
     import asyncio
 
     configure_logging()
-    logger.info("Starting scheduler")
+    logger.info("Starting healthcheck scheduler")
+    loop = asyncio.get_event_loop()
     scheduler.start()
     logger.info("Starting bot polling")
-    asyncio.run(bot.polling(non_stop=True))
+    loop.run_until_complete(bot.polling(non_stop=True))

@@ -7,8 +7,8 @@ from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
-from models import PatchDatabaseRequest, SubmitDatabaseRequest
-from utils import Alert, Message
+from models import Alert, PatchDatabaseRequest, SubmitDatabaseRequest
+from utils import Message
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User

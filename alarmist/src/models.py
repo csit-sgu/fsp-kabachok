@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from utils import MESSAGES, Message
 
 
 class SubmitDatabaseRequest(BaseModel):
@@ -11,3 +12,9 @@ class PatchDatabaseRequest(BaseModel):
     conn_string: str
     display_name: str
     inactive: bool
+
+
+class Alert:
+    def __init__(self, type: Message, locale: str):
+        self.type = type
+        self.message = MESSAGES[type][locale]
