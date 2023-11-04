@@ -1,7 +1,8 @@
 services:
   cpu_playground:
     container_name: cpu_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -12,7 +13,8 @@ services:
     cpus: 0.01
   ram_playground:
     container_name: ram_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -23,7 +25,8 @@ services:
     mem_limit: 150M
   connection_playground:
     container_name: connection_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -33,7 +36,8 @@ services:
       - "4002:5432"
   storage_playground:
     container_name: storage_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -45,7 +49,8 @@ services:
       size: '1G'
   lwlock_playground:
     container_name: lwlock_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -55,7 +60,8 @@ services:
       - "4004:5432"
   timeout_playground:
     container_name: timeout_playground
-    image: postgres:16.0
+    build:
+      context: playground
     restart: always
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
