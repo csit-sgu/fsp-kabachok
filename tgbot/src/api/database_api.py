@@ -1,7 +1,10 @@
+from typing import List
 from uuid import UUID
 
 import httpx
 from pydantic import BaseModel, TypeAdapter
+
+from shared.models import Metric
 
 
 class Database(BaseModel):
@@ -22,10 +25,19 @@ class DatabaseApi:
         )
         await self._client.post(f"{self._url_prefix}/db/", json=data)
 
-    async def get_dbs(self, *, user_id: int) -> list[Database]:
+    async def get_dbs(self, *, user_id: int) -> List[Database]:
         r = await self._client.get(f"{self._url_prefix}/users/{user_id}/db")
         validator = TypeAdapter(list[Database])
         return validator.validate_json(r.text)
 
     async def remove_db(self, db_id: UUID):
         await self._client.delete(f"{self._url_prefix}/db/{db_id}")
+
+    async def get_states(
+        self, *, source_id: UUID, locale="ru"
+    ) -> List[Metric]:
+        validator = TypeAdapter(List[Metric])
+        r = await self._client.get(
+            f"{self._url_prefix}/state/{source_id}?locale={locale}"
+        )
+        return validator.validate_json(r.text)

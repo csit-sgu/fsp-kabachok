@@ -1,8 +1,6 @@
-import time
 from typing import Optional
 
 import databases
-from databases import Database
 
 
 async def get_active_peers_number(
