@@ -1,7 +1,6 @@
+import logging
 from typing import List
 from uuid import UUID
-
-import logging
 
 import httpx
 from pydantic import TypeAdapter

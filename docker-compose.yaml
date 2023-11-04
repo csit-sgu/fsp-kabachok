@@ -9,6 +9,8 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     healthcheck:
       test: "pg_isready --username=postgres && psql --username=postgres --list"
       interval: 5s
@@ -22,6 +24,10 @@ services:
       - "8001:8000"
     volumes:
       - ./config:/config
+    environment:
+      - BACKEND_URL_PREFIX=http://alarmist:8000/api
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy

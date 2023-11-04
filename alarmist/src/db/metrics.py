@@ -1,7 +1,7 @@
 from typing import Optional
 
-import databases
 import asyncpg
+import databases
 
 
 async def get_active_peers_number(

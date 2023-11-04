@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Message(Enum):
+class Texts(Enum):
     START_MESSAGE = "start_message"
     ADD_DATABASE = "add_database"
     ADD_DATABASES_FROM_FILE = "add_database_from_file"
@@ -26,13 +26,13 @@ class Message(Enum):
 
 
 MESSAGES = {
-    Message.START_MESSAGE: {
+    Texts.START_MESSAGE: {
         "ru": "Привет от Кабачка!",
         "en": "Hello from Kabachok!",
     },
-    Message.ADD_DATABASE: {"ru": "Добавить БД"},
-    Message.ADD_DATABASES_FROM_FILE: {"ru": "Добавить БД из файла"},
-    Message.UPLOAD_DB_FILE: {
+    Texts.ADD_DATABASE: {"ru": "Добавить БД"},
+    Texts.ADD_DATABASES_FROM_FILE: {"ru": "Добавить БД из файла"},
+    Texts.UPLOAD_DB_FILE: {
         "ru": """Загрузите файл в следующем формате
 
 ```JSON
@@ -50,27 +50,27 @@ MESSAGES = {
 ```
 """
     },
-    Message.DATABASES_UPLOADED: {"ru": "Базы данных загружены"},
-    Message.CHANGE_DATABASE: {"ru": "Изменить БД"},
-    Message.DELETE_DATABASE: {"ru": "Удалить БД"},
-    Message.GET_STATE: {"ru": "Вот состояние на текущий момент"},
-    Message.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
-    Message.MANAGE: {"ru": "Управление"},
-    Message.ENTER_DB_DISPLAY_NAME: {
+    Texts.DATABASES_UPLOADED: {"ru": "Базы данных загружены"},
+    Texts.CHANGE_DATABASE: {"ru": "Изменить БД"},
+    Texts.DELETE_DATABASE: {"ru": "Удалить БД"},
+    Texts.GET_STATE: {"ru": "Вот состояние на текущий момент"},
+    Texts.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
+    Texts.MANAGE: {"ru": "Управление"},
+    Texts.ENTER_DB_DISPLAY_NAME: {
         "ru": "Введите название вашей базы данных, которое будет отображаться в боте"
     },
-    Message.ENTER_DB_URL: {"ru": "Введите строку подсоединения к базе данных"},
-    Message.DB_ADDED: {"ru": "База данных добавлена"},
-    Message.SELECT_DB: {"ru": "Выберите базу данных"},
-    Message.CONFIRM_DB_DELETING: {
+    Texts.ENTER_DB_URL: {"ru": "Введите строку подсоединения к базе данных"},
+    Texts.DB_ADDED: {"ru": "База данных добавлена"},
+    Texts.SELECT_DB: {"ru": "Выберите базу данных"},
+    Texts.CONFIRM_DB_DELETING: {
         "ru": "Вы точно хотите удалить базу данных с названием %?"
     },
-    Message.DB_DELETED: {"ru": "База с названием % удалена"},
-    Message.DB_DELETING_CANCELED: {"ru": "Удаление отменено"},
-    Message.METRICS_ANALYSIS_RESULT: {"ru": "Результат анализа метрик для "},
-    Message.NO_DBS: {"ru": "У вас нет ни одной базы данных"},
-    Message.YES: {"ru": "Да"},
-    Message.NO: {"ru": "Нет"},
+    Texts.DB_DELETED: {"ru": "База с названием % удалена"},
+    Texts.DB_DELETING_CANCELED: {"ru": "Удаление отменено"},
+    Texts.METRICS_ANALYSIS_RESULT: {"ru": "Результат анализа метрик для "},
+    Texts.NO_DBS: {"ru": "У вас нет ни одной базы данных"},
+    Texts.YES: {"ru": "Да"},
+    Texts.NO: {"ru": "Нет"},
 }
 
 
