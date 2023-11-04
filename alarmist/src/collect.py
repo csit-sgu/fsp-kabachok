@@ -92,8 +92,8 @@ async def check_lwlocks(source_id, database, max_count, locale):
 
 
 async def check_long_transactions(source_id, database, max_duration, locale):
-    pid, transaction_duration = await metrics.get_longest_transaction(database)
-    if transaction_duration > max_duration:
+    response = await metrics.get_long_transactions(database)
+    if response:
         logger.warn(
             f"Alert detected. Source {source_id} has too long transactions"
         )

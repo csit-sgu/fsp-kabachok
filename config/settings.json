@@ -18,7 +18,7 @@
         "max_transaction_duration": 100
     },
     "watchdog": {
-        "disable_healthcheck": true,
+        "disable_healthcheck": false,
         "interval": 3
     },
     "logger" : {

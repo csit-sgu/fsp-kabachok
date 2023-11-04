@@ -19,7 +19,7 @@
     - [ ] Disk space
     - [x] Active peers
     - [ ] LWLOCK transactions
-    - [ ] Long transactions
+    - [x] Long transactions
     - [x] DB is unavailable
 
 2. ~Рефакторинг бэкэнда (улучшение логики healthcheck)~
@@ -27,8 +27,8 @@
 4. Генерация изображений на фронтэнде (Seaborn)
 5. ~Сделать рабочий конфиг в виде файла для быстрой загрузки и теста БД~
 6. Возвращение uuid-а ошибки на фронт в случае неудачной работы сервиса
-7. Причесать сообщения на фронтэнде (Emoji)
-8. Выводить AlertType с эмодзи
+7. ~Причесать сообщения на фронтэнде (Emoji)~
+8. ~Выводить AlertType с эмодзи~
 
 ### Disk usage alert
 - [x] INSERTS
