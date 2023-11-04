@@ -19,7 +19,7 @@ services:
     container_name: tgbot
     build: tgbot
     ports:
-      - "8000:8000"
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -27,7 +27,7 @@ services:
     container_name: alarmist
     build: alarmist
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - ./config:/config
     depends_on:

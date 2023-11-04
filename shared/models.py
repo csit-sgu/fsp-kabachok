@@ -1,5 +1,13 @@
 from enum import Enum
 
+from pydantic import BaseModel
+
+
+class SubmitDatabaseRequest(BaseModel):
+    user_id: int
+    display_name: str
+    conn_string: str
+
 
 class MetricType(Enum):
     CPU_USAGE = "cpu_usage"
@@ -9,7 +17,6 @@ class MetricType(Enum):
     LONGEST_TRANSACTION = "longest_transaction"
 
 
-class Metric:
-    def __init__(self, type: MetricType, value: float):
-        self.type = type
-        self.value = value
+class Metric(BaseModel):
+    type: MetricType
+    value: float | None

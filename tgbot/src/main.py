@@ -1,5 +1,5 @@
 import os
-import uuid
+from typing import List
 
 import httpx
 import view.markups as markup
@@ -18,6 +18,8 @@ from telebot.types import (
 from view.messages import Message, get_text
 from view.utils import Button
 from view.viewmodels import DatabaseFromFile, DatabaseViewModel
+
+from shared.models import Metric
 
 load_dotenv()
 
@@ -58,7 +60,28 @@ async def process_start_message(message):
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Start, chat_id)
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
-        # TODO(nrydanov): Realize based on function from Postgres API
+        databases = [
+            DatabaseViewModel(db.source_id, db.display_name)
+            for db in await database_api.get_dbs(user_id=message.from_user.id)
+        ]
+
+        print(databases)
+
+        entries = []
+        for db in databases:
+            metrics: List[Metric] = await database_api.get_states(
+                source_id=db.id
+            )
+            entry: str = "\n".join(
+                list(map(lambda y: f"{y.type.value}: {y.value}", metrics))
+            )
+
+            entries.append(f"==={db.name}===\n{entry}")
+
+        print(entries)
+
+        await bot.send_message(message.chat.id, "\n".join(entries))
+
     elif text == get_text("ru", Button.MANAGE.value):
         chat_id = message.chat.id
         await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
@@ -207,7 +230,6 @@ async def process_delete_db(cb):
     db = DatabaseViewModel.from_dict(data["databases"][db_number])
 
     await database_api.remove_db(db.id)
-
     await bot.answer_callback_query(cb.id)
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
     await bot.send_message(
