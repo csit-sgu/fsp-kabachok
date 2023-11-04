@@ -3,13 +3,15 @@ from enum import Enum
 
 class Message(Enum):
     ACTIVE_PEERS = "active_peers"
-    CPU_USAGE = "cpu_usage"
+    CPU = "cpu_usage"
     FREE_SPACE = "free_space"
     NOT_CONNECTED = "not_connected"
+    LWLOCK_COUNT = "lwlock_count"
+    TIMEOUT = "timeout"
 
 
 MESSAGES = {
-    Message.CPU_USAGE: {
+    Message.CPU: {
         "ru": "Слишком большая нагрузка на CPU",
         "en": "Extensive CPU load",
     },
@@ -21,4 +23,9 @@ MESSAGES = {
         "ru": "Не удалось подключиться к базе данных",
         "en": "Could not establish database connection",
     },
+    Message.ACTIVE_PEERS: {
+        "ru": "Слишком много активных подключений",
+    },
+    Message.LWLOCK_COUNT: {"ru": "Слишком много блокировок"},
+    Message.TIMEOUT: {"ru": "Слишком долгая операция"},
 }

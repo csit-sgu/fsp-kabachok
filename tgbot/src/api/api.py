@@ -5,7 +5,7 @@ import httpx
 from pydantic import TypeAdapter
 
 from shared.entities import User
-from shared.models import Database, Metric
+from shared.models import Alert, Database, Metric
 
 
 class Api:
@@ -35,6 +35,13 @@ class Api:
             f"{self._url_prefix}/state/{source_id}?locale={locale}"
         )
         return validator.validate_json(r.text)
+
+    async def healthcheck(self, source_id, locale="ru"):
+        validator = TypeAdapter(List[Alert])
+        r = await self._client.get(
+            f"{self._url_prefix}/healthcheck/{source_id}"
+        )
+        return validator.validate_json(r)
 
     async def get_users(self):
         validator = TypeAdapter(List[User])

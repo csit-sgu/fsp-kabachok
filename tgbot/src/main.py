@@ -53,9 +53,12 @@ async def perform_healthcheck(bot: AsyncTeleBot, api: Api):
     for user in users:
         db_objects: List[Database] = await api.get_db(user.user_id)
         for db in db_objects:
-            # NOTE(nrydanov): Write according method in API sections
-            # and use it here, and, finally, send messages to all users
-            pass
+            r = await api.healthcheck(db.source_id)
+            output = "\n".join(map(lambda x: x.message, r))
+            bot.send_message(
+                user.chat_id,
+                output,
+            )
 
     logger.info("Performing scheduled healthcheck!")
 
@@ -86,7 +89,7 @@ async def process_start_message(message):
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
         databases = [
             SourceModel(id=db.source_id, name=db.display_name)
-            for db in await api.get_dbs(user_id=message.from_user.id)
+            for db in await api.get_db(user_id=message.from_user.id)
         ]
 
         entries = []
@@ -172,7 +175,7 @@ async def process_delete_db(message):
 
     databases = [
         SourceModel(id=db.source_id, name=db.display_name)
-        for db in await api.get_dbs(user_id=message.from_user.id)
+        for db in await api.get_db(user_id=message.from_user.id)
     ]
 
     if not databases:
@@ -187,7 +190,7 @@ async def process_delete_db(message):
         return
 
     databases_in_fsm_data = {
-        i: db.to_dict() for i, db in enumerate(databases, start=1)
+        i: db.model_dump() for i, db in enumerate(databases, start=1)
     }
     await bot.add_data(
         message.from_user.id, message.chat.id, databases=databases_in_fsm_data

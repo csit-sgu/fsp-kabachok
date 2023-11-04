@@ -3,7 +3,8 @@ CREATE DATABASE ogorod;
 \c ogorod
 
 CREATE TABLE users (
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    chat_id bigint NOT NULL
 );
 
 CREATE TABLE source (

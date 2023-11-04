@@ -7,13 +7,13 @@ from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
-from models import Alert, PatchDatabaseRequest, SubmitDatabaseRequest
+from models import PatchDatabaseRequest, SubmitDatabaseRequest
 from utils import Message
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User
 from shared.logging import configure_logging
-from shared.models import Metric, MetricType
+from shared.models import Alert, AlertType, Metric, MetricType
 from shared.resources import SharedResources
 from shared.utils import SHARED_CONFIG_PATH
 
@@ -49,8 +49,8 @@ ctx = Context()
 
 
 @app.post("/api/user", status_code=204)
-async def register(user_id: int):
-    await ctx.user_repo.add(User(user_id=user_id))
+async def register(user: User):
+    await ctx.user_repo.add(user)
 
 
 @app.get("/api/user")
@@ -111,36 +111,54 @@ async def healthcheck(source_id: UUID, locale: str):
 
     async with Database(source.conn_string) as database:
         if not database.is_connected:
-            return list(Alert(Message.NOT_CONNECTED, locale))
+            return list(
+                Alert(
+                    type=AlertType.NOT_CONNECTED, message=Message.NOT_CONNECTED
+                )
+            )
 
         alerts = list()
 
         try:
             free_space = await metrics.get_free_space(database)
             if free_space < metrics_limits.free_space_threshold:
-                alerts.append(Alert(Message.FREE_SPACE, locale))
+                alerts.append(
+                    Alert(
+                        type=AlertType.FREE_SPACE, message=Message.FREE_SPACE
+                    )
+                )
 
             cpu_usage = await metrics.get_cpu_usage(database)
             if cpu_usage > metrics_limits.cpu_usage_threshold:
-                alerts.append(Alert(Message.CPU_USAGE, locale))
+                alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
         except:
             # TODO(nrydanpov): Add proper handling
             pass
 
         peers_number = await metrics.get_active_peers_number(database)
         if peers_number > metrics_limits.max_active_peers_delta:
-            alerts.append(Alert(Message.ACTIVE_PEERS, locale))
+            alerts.append(
+                Alert(
+                    type=AlertType.ACTIVE_PEERS, message=Message.ACTIVE_PEERS
+                )
+            )
 
         lwlock_count = await metrics.get_lwlock_count(database)
         if lwlock_count > metrics_limits.max_lwlock_count:
-            alerts.append(Alert(Message.LWLOCK_COUNT, locale))
+            alerts.append(
+                Alert(
+                    type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT
+                )
+            )
 
         # TODO: "Transaction with id %pid is running %longest_transaction seconds"
         pid, transaction_duration = await metrics.get_longest_transaction(
             database
         )
         if transaction_duration > metrics_limits.max_transaction_duration:
-            alerts.append(Alert(Message.MAX_TRANSACTION_DURATION, locale))
+            alerts.append(
+                Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT)
+            )
 
         return alerts
 

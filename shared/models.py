@@ -28,3 +28,18 @@ class Database(BaseModel):
     display_name: str
     conn_string: str
     inactive: bool
+
+
+class AlertType(Enum):
+    CPU = "cpu"
+    MEMORY = "memory"
+    FREE_SPACE = "free_space"
+    TIMEOUT = "timeout"
+    UNAVAILABLE = "unavailable"
+    ACTIVE_PEERS = "active_peers"
+    LWLOCK_COUNT = "lwlock_count"
+
+
+class Alert(BaseModel):
+    type: AlertType
+    message: str

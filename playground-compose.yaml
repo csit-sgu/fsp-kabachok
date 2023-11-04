@@ -39,7 +39,6 @@ services:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
     volumes:
       - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - db-data:/var/lib/postgresql/data
     ports:
       - "4003:5432"
     storage_opt:
@@ -64,6 +63,3 @@ services:
       - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4005:5432"
-  volumes:
-    db-data:
-      driver: local
