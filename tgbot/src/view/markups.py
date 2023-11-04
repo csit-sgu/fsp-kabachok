@@ -6,7 +6,7 @@ from tgbot.src.view.messages import Message, get_text
 def start_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    markup.add(types.KeyboardButton(get_text("ru", Message.GET_STATE)))
+    markup.add(types.KeyboardButton(get_text("ru", Message.GET_STATE_BUTTON)))
     markup.add(types.KeyboardButton(get_text("ru", Message.MANAGE)))
     return markup
 

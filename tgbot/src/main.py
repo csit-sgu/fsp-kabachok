@@ -79,7 +79,8 @@ async def process_start(message):
 
 @bot.message_handler(
     state=BotState.Start,
-    func=lambda message: message.text == get_text("ru", Message.GET_STATE),
+    func=lambda message: message.text
+    == get_text("ru", Message.GET_STATE_BUTTON),
 )
 async def process_get_state(message):
     chat_id = message.chat.id
