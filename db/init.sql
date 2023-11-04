@@ -2,6 +2,10 @@ CREATE DATABASE ogorod;
 
 \c ogorod
 
+CREATE TABLE user (
+    user_id bigint NOT NULL
+)
+
 CREATE TABLE source (
     source_id uuid PRIMARY KEY,
     conn_string varchar(128) NOT NULL,

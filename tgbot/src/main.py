@@ -1,9 +1,11 @@
+import logging
 import os
 from typing import List
 
 import httpx
 import view.markups as markup
-from api.database_api import DatabaseApi
+from api.api import Api
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from pydantic import TypeAdapter
 from states import BotState
@@ -16,12 +18,18 @@ from telebot.types import (
     ReplyKeyboardRemove,
 )
 from view.messages import Message, get_text
+from view.models import DatabaseFromFile, SourceModel
 from view.utils import Button
-from view.viewmodels import DatabaseFromFile, SourceModel
 
-from shared.models import Metric
+from shared.entities import User
+from shared.logging import configure_logging
+from shared.models import Database, Metric
 
 load_dotenv()
+
+
+logger = logging.getLogger("app")
+
 
 token = os.getenv("BOT_TOKEN")
 backend_url_prefix = os.getenv(
@@ -29,7 +37,7 @@ backend_url_prefix = os.getenv(
 )
 
 httpx_client = httpx.AsyncClient()
-database_api = DatabaseApi(httpx_client, backend_url_prefix)
+api = Api(httpx_client, backend_url_prefix)
 
 storage = StatePickleStorage(file_path="cache/.state_save/states.pkl")
 bot = AsyncTeleBot(
@@ -38,6 +46,18 @@ bot = AsyncTeleBot(
 )
 
 bot.add_custom_filter(StateFilter(bot))
+
+
+async def perform_healthcheck(bot: AsyncTeleBot, api: Api):
+    users: List[User] = await api.get_users()
+    for user in users:
+        db_objects: List[Database] = await api.get_db(user.user_id)
+
+    logger.info("Performing scheduled healthcheck!")
+
+
+scheduler = AsyncIOScheduler()
+scheduler.add_job(perform_healthcheck, "interval", seconds=15, args=(bot, api))
 
 
 @bot.message_handler(commands=["start"])
@@ -62,14 +82,12 @@ async def process_start_message(message):
         await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
         databases = [
             SourceModel(id=db.source_id, name=db.display_name)
-            for db in await database_api.get_dbs(user_id=message.from_user.id)
+            for db in await api.get_dbs(user_id=message.from_user.id)
         ]
 
         entries = []
         for db in databases:
-            metrics: List[Metric] = await database_api.get_states(
-                source_id=db.id
-            )
+            metrics: List[Metric] = await api.get_states(source_id=db.id)
             entry: str = "\n".join(
                 list(map(lambda y: f"*{y.type.value}*: {y.value}", metrics))
             )
@@ -126,7 +144,7 @@ async def process_db_url(message):
     db_name = data["db_name"]
     db_url = message.text
 
-    await database_api.submit_db(
+    await api.submit_db(
         user_id=message.from_user.id, display_name=db_name, db_url=db_url
     )
 
@@ -150,7 +168,7 @@ async def process_delete_db(message):
 
     databases = [
         SourceModel(id=db.source_id, name=db.display_name)
-        for db in await database_api.get_dbs(user_id=message.from_user.id)
+        for db in await api.get_dbs(user_id=message.from_user.id)
     ]
 
     if not databases:
@@ -228,7 +246,7 @@ async def process_delete_db(cb):
 
     db = TypeAdapter(SourceModel).validate_python(data["databases"][db_number])
 
-    await database_api.remove_db(db.id)
+    await api.remove_db(db.id)
     await bot.answer_callback_query(cb.id)
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
     await bot.send_message(
@@ -285,7 +303,7 @@ async def process_uploading_db_file(message):
     validator = TypeAdapter(list[DatabaseFromFile])
 
     for db in validator.validate_json(downloaded_file):
-        await database_api.submit_db(
+        await api.submit_db(
             user_id=message.from_user.id,
             display_name=db.display_name,
             db_url=db.db_url,
@@ -303,4 +321,8 @@ async def process_uploading_db_file(message):
 if __name__ == "__main__":
     import asyncio
 
+    configure_logging()
+    logger.info("Starting scheduler")
+    scheduler.start()
+    logger.info("Starting bot polling")
     asyncio.run(bot.polling(non_stop=True))

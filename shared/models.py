@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -20,3 +21,10 @@ class MetricType(Enum):
 class Metric(BaseModel):
     type: MetricType
     value: float | None
+
+
+class Database(BaseModel):
+    source_id: UUID
+    display_name: str
+    conn_string: str
+    inactive: bool

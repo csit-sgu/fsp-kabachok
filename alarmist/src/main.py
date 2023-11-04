@@ -11,6 +11,7 @@ from models import PatchDatabaseRequest, SubmitDatabaseRequest
 from utils import Alert, Message
 
 from shared.db import PgRepository, create_db_string
+from shared.entities import User
 from shared.logging import configure_logging
 from shared.models import Metric, MetricType
 from shared.resources import SharedResources
@@ -32,10 +33,10 @@ class Context:
             f"{SHARED_CONFIG_PATH}/settings.json"
         )
         self.pg = Database(create_db_string(self.shared_settings.pg_creds))
-        print(create_db_string(self.shared_settings.pg_creds))
         self.source_repo = PgRepository(self.pg, Source)
         self.relation_repo = PgRepository(self.pg, UserSource)
         self.source_view_repo = PgRepository(self.pg, UserSources)
+        self.user_repo = PgRepository(self.pg, User)
 
     async def init_db(self) -> None:
         await self.pg.connect()
@@ -45,6 +46,16 @@ class Context:
 
 
 ctx = Context()
+
+
+@app.post("/api/user", status_code=204)
+async def register(user_id: int):
+    await ctx.user_repo.add(User(user_id=user_id))
+
+
+@app.get("/api/user")
+async def get_all_users():
+    return await ctx.user_repo.get()
 
 
 @app.post("/api/db/", status_code=204)

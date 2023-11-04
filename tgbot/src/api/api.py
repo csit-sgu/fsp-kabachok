@@ -2,19 +2,13 @@ from typing import List
 from uuid import UUID
 
 import httpx
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 
-from shared.models import Metric
-
-
-class Database(BaseModel):
-    source_id: UUID
-    display_name: str
-    conn_string: str
-    inactive: bool
+from shared.entities import User
+from shared.models import Database, Metric
 
 
-class DatabaseApi:
+class Api:
     def __init__(self, async_client: httpx.AsyncClient, url_prefix: str):
         self._client = async_client
         self._url_prefix = url_prefix
@@ -25,7 +19,7 @@ class DatabaseApi:
         )
         await self._client.post(f"{self._url_prefix}/db/", json=data)
 
-    async def get_dbs(self, *, user_id: int) -> List[Database]:
+    async def get_db(self, *, user_id: int) -> List[Database]:
         r = await self._client.get(f"{self._url_prefix}/users/{user_id}/db")
         validator = TypeAdapter(list[Database])
         return validator.validate_json(r.text)
@@ -40,4 +34,9 @@ class DatabaseApi:
         r = await self._client.get(
             f"{self._url_prefix}/state/{source_id}?locale={locale}"
         )
+        return validator.validate_json(r.text)
+
+    async def get_users(self):
+        validator = TypeAdapter(List[User])
+        r = await self._client.get(f"{self._url_prefix}/user")
         return validator.validate_json(r.text)
