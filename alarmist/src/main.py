@@ -110,25 +110,32 @@ async def healthcheck(source_id: UUID, locale: str):
     metrics_limits = ctx.shared_settings.metrics
     source: Source = (await retrieve(source_id))[0]
 
-    database = Database(source.conn_string)
+    try:
+        database = Database(source.conn_string)
+        await database.connect()
+    except KeyError:
+        return [
+            Alert(
+                type=AlertType.BAD_CONN_STING,
+                message="Некорректная строка подключения к БД",
+            )
+        ]
+    except asyncpg.exceptions.TooManyConnectionsError:
+        return [
+            Alert(
+                type=AlertType.ACTIVE_PEERS,
+                message="Достигнуто максимальное количество подключений",
+            )
+        ]
 
     alerts = list()
 
-    try:
-        await database.connect()
-    except asyncpg.exceptions.TooManyConnectionsError:
-        alerts.append(
-            Alert(
-                type=AlertType.ACTIVE_PEERS,
-                message="Слишком много подключений",
-            )
-        )
-        return alerts
-
     if not database.is_connected:
-        return list(
-            Alert(type=AlertType.NOT_CONNECTED, message="Подключение невозможно")
-        )
+        return [
+            Alert(
+                type=AlertType.NOT_CONNECTED, message="Подключение невозможно"
+            )
+        ]
 
     peers_number = await metrics.get_active_peers_number(database)
     if peers_number is None or peers_number > metrics_limits.max_active_peers:
@@ -176,10 +183,17 @@ async def healthcheck(source_id: UUID, locale: str):
 async def get_state(source_id: UUID, locale: str):
     source: Source = (await retrieve(source_id))[0]
 
-    database = Database(source.conn_string)
-
     try:
+        database = Database(source.conn_string)
         await database.connect()
+    except KeyError:
+        return Response(
+            status_code=400,
+            content=Alert(
+                type=AlertType.BAD_CONN_STING,
+                message=MESSAGES[Message.BAD_CONN_STING][locale],
+            ),
+        )
     except asyncpg.exceptions.TooManyConnectionsError:
         return Response(
             status_code=400,

@@ -62,14 +62,14 @@ class Api:
         logger.debug(
             f"Api.healthcheck called with params: {source_id=} {locale=}"
         )
-        validator = TypeAdapter(List[Alert])
+        validator = TypeAdapter(List[Alert] | None)
         r = await self._client.get(
             f"{self._url_prefix}/healthcheck/{source_id}?locale={locale}"
         )
         return validator.validate_json(r.text)
 
     async def get_users(self):
-        logger.debug(f"Api.get_users called")
+        logger.debug("Api.get_users called")
 
         validator = TypeAdapter(List[User])
         r = await self._client.get(f"{self._url_prefix}/user")
