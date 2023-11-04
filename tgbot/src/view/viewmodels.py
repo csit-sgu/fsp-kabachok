@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 @dataclass
-class DatabaseViewModel:
+class SourceModel:
     id: str
     name: str
 
@@ -13,7 +13,7 @@ class DatabaseViewModel:
 
     @staticmethod
     def from_dict(db_dict: dict) -> "DatabaseViewModel":
-        return DatabaseViewModel(id=db_dict["id"], name=db_dict["name"])
+        return SourceModel(id=db_dict["id"], name=db_dict["name"])
 
 
 class DatabaseFromFile(BaseModel):
