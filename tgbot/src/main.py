@@ -92,6 +92,10 @@ async def process_start_message(message):
             for db in await api.get_db(user_id=message.from_user.id)
         ]
 
+        if not databases:
+            await bot.send_message(chat_id, get_text("ru", Message.NO_DBS))
+            return
+
         entries = []
         for db in databases:
             metrics: List[Metric] = await api.get_states(source_id=db.id)

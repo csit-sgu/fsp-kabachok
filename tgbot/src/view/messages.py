@@ -68,7 +68,7 @@ MESSAGES = {
     Message.DB_DELETED: {"ru": "База с названием % удалена"},
     Message.DB_DELETING_CANCELED: {"ru": "Удаление отменено"},
     Message.METRICS_ANALYSIS_RESULT: {"ru": "Результат анализа метрик для "},
-    Message.NO_DBS: {"ru": "Ни одной базы данных"},
+    Message.NO_DBS: {"ru": "У вас нет ни одной базы данных"},
     Message.YES: {"ru": "Да"},
     Message.NO: {"ru": "Нет"},
 }
