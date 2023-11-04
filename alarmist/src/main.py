@@ -174,10 +174,10 @@ async def get_state(source_id: UUID, locale: str, response: Response):
         type=MetricType.LWLOCK_TRANSACTIONS,
         value=await metrics.get_lwlock_count(database),
     )
-    # longest_transaction = Metric(
-    #     MetricType.LONGEST_TRANSACTION,
-    #     await metrics.get_longest_transaction(database),
-    # )
+    lt = await metrics.get_long_transactions(database)
+    long_transactions = Metric(
+        type=MetricType.LONG_TRANSACTION, value=len(lt), context=lt
+    )
 
     await database.disconnect()
 
@@ -186,7 +186,7 @@ async def get_state(source_id: UUID, locale: str, response: Response):
         cpu_usage,
         active_peers,
         lwlock_count,
-        # longest_transaction,
+        long_transactions,
     ]
 
 

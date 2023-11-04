@@ -15,12 +15,13 @@ class MetricType(Enum):
     FREE_SPACE = "free_space"
     ACTIVE_PEERS = "active_peers"
     LWLOCK_TRANSACTIONS = "lwlock_transactions"
-    LONGEST_TRANSACTION = "longest_transaction"
+    LONG_TRANSACTION = "long_transaction"
 
 
 class Metric(BaseModel):
     type: MetricType
     value: float | None
+    context: dict | None = None
 
 
 class Database(BaseModel):

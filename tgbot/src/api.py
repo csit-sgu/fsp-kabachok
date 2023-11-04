@@ -38,6 +38,15 @@ class Api:
         validator = TypeAdapter(list[Database])
         return validator.validate_json(r.text)
 
+    async def retrieve_db(self, *, source_id: UUID) -> Database:
+        logger.debug(f"Api.retrieve_db called with params: {source_id=}")
+
+        r = await self._client.get(
+            f"{self._url_prefix}{AlarmistRoutes.DB.value}{source_id}"
+        )
+        validator = TypeAdapter(Database)
+        return validator.validate_json(r.text)
+
     async def remove_db(self, db_id: UUID):
         logger.debug(f"Api.remove_db called with params: {db_id=}")
 

@@ -1,7 +1,10 @@
+import logging
 from typing import Optional
 
 import asyncpg
 import databases
+
+logger = logging.getLogger()
 
 
 async def get_max_active_peers(connection: databases.core.Connection) -> int:
@@ -32,17 +35,19 @@ async def get_lwlock_count(connection: databases.core.Connection) -> int:
     return int(response)
 
 
-async def get_longest_transaction(connection: databases.core.Connection):
+async def get_long_transactions(connection: databases.core.Connection):
     response = await connection.fetch_one(
         """
-        SELECT pid, now() - xact_start AS time_difference
+        SELECT pid, now() - xact_start AS duration
         FROM pg_stat_activity
-        WHERE state IN ('idle in transaction', 'active')
-        ORDER BY time_difference DESC
-        LIMIT 1;
+        WHERE state = 'active' AND now() - xact_start > interval '4 seconds';
         """
     )
-    return response[0], response[1].total_seconds()
+    if not response:
+        return {}
+    result = dict(map(lambda x: (x[0], x[1]), response))
+    logger.info(f"Found long transactions: {result}")
+    return result
 
 
 # TODO: Change it from Gb's to %'s of free space

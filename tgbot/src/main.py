@@ -35,13 +35,21 @@ async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
             user_id=user.user_id
         )
         for db in db_objects:
-            r = await api_service.healthcheck(db.source_id)
-            output = "\n".join(list(map(lambda x: x.message, r)))
-            if output:
-                await tgbot.send_message(
-                    user.chat_id,
-                    output,
+            alerts = await api_service.healthcheck(db.source_id)
+            for alert in alerts:
+                ip = db.conn_string.split("@")[1]
+                print(ip)
+                output = "\n".join(
+                    map(
+                        lambda x: f"_{db.display_name}_ (`{ip}`): {x.message}",
+                        alerts,
+                    )
                 )
+                if output:
+                    output = "🚨 *ВНИМАНИЕ* 🚨\n" + output
+                    await tgbot.send_message(
+                        user.chat_id, output, parse_mode="markdown"
+                    )
 
     logger.info("Performing scheduled healthcheck!")
 
