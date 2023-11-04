@@ -45,15 +45,17 @@ bot = AsyncTeleBot(
 bot.add_custom_filter(StateFilter(bot))
 
 
-async def perform_healthcheck(bot: AsyncTeleBot, api: Api):
-    users: List[User] = await api.get_users()
+async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
+    users: List[User] = await api_service.get_users()
     for user in users:
-        db_objects: List[Database] = await api.get_db(user_id=user.user_id)
+        db_objects: List[Database] = await api_service.get_db(
+            user_id=user.user_id
+        )
         for db in db_objects:
-            r = await api.healthcheck(db.source_id)
+            r = await api_service.healthcheck(db.source_id)
             output = "\n".join(list(map(lambda x: x.message, r)))
             if output:
-                await bot.send_message(
+                await tgbot.send_message(
                     user.chat_id,
                     output,
                 )
