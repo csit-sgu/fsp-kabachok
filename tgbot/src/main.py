@@ -16,7 +16,7 @@ from telebot.types import (
     InlineKeyboardMarkup,
     ReplyKeyboardRemove,
 )
-from view.messages import Message, get_text
+from view.texts import Texts, get_text
 
 from shared.entities import User
 from shared.logging import configure_logging
@@ -72,7 +72,7 @@ async def process_start(message):
     await api.register_user(user_id=message.from_user.id, chat_id=chat_id)
     await bot.send_message(
         chat_id,
-        get_text("ru", Message.START_MESSAGE),
+        get_text("ru", Texts.START_MESSAGE),
         reply_markup=markup.start_markup(),
     )
 
@@ -80,20 +80,20 @@ async def process_start(message):
 @bot.message_handler(
     state=BotState.Start,
     func=lambda message: message.text
-    == get_text("ru", Message.GET_STATE_BUTTON),
+    == get_text("ru", Texts.GET_STATE_BUTTON),
 )
 async def process_get_state(message):
     chat_id = message.chat.id
 
     await bot.set_state(message.from_user.id, BotState.Start, chat_id)
-    await bot.send_message(chat_id, get_text("ru", Message.GET_STATE))
+    await bot.send_message(chat_id, get_text("ru", Texts.GET_STATE))
     databases = [
         SourceModel(id=db.source_id, name=db.display_name)
         for db in await api.get_db(user_id=message.from_user.id)
     ]
 
     if not databases:
-        await bot.send_message(chat_id, get_text("ru", Message.NO_DBS))
+        await bot.send_message(chat_id, get_text("ru", Texts.NO_DBS))
         return
 
     entries = []
@@ -104,7 +104,7 @@ async def process_get_state(message):
         )
 
         entries.append(
-            get_text("ru", Message.METRICS_ANALYSIS_RESULT)
+            get_text("ru", Texts.METRICS_ANALYSIS_RESULT)
             + f"{db.name}\n{entry}"
         )
 
@@ -115,7 +115,7 @@ async def process_get_state(message):
 
 @bot.message_handler(
     state=BotState.Start,
-    func=lambda message: message.text == get_text("ru", Message.MANAGE),
+    func=lambda message: message.text == get_text("ru", Texts.MANAGE),
 )
 async def process_manage(message):
     chat_id = message.chat.id
@@ -123,13 +123,13 @@ async def process_manage(message):
     await bot.set_state(message.from_user.id, BotState.Manage, chat_id)
     await bot.send_message(
         chat_id,
-        get_text("ru", Message.MANAGE),
+        get_text("ru", Texts.MANAGE),
         reply_markup=markup.manage_markup(),
     )
 
 
 @bot.message_handler(
-    func=lambda message: message.text == get_text("ru", Message.ADD_DATABASE)
+    func=lambda message: message.text == get_text("ru", Texts.ADD_DATABASE)
 )
 async def process_add_database(message):
     await bot.set_state(
@@ -137,7 +137,7 @@ async def process_add_database(message):
     )
     await bot.send_message(
         message.chat.id,
-        get_text("ru", Message.ENTER_DB_DISPLAY_NAME),
+        get_text("ru", Texts.ENTER_DB_DISPLAY_NAME),
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -150,9 +150,7 @@ async def process_db_name(message):
     await bot.set_state(
         message.from_user.id, BotState.EnteringDBURL, message.chat.id
     )
-    await bot.send_message(
-        message.chat.id, get_text("ru", Message.ENTER_DB_URL)
-    )
+    await bot.send_message(message.chat.id, get_text("ru", Texts.ENTER_DB_URL))
 
 
 @bot.message_handler(state=BotState.EnteringDBURL)
@@ -169,15 +167,14 @@ async def process_db_url(message):
     await bot.set_state(message.from_user.id, BotState.Start, message.chat.id)
     await bot.send_message(
         message.chat.id,
-        get_text("ru", Message.DB_ADDED),
+        get_text("ru", Texts.DB_ADDED),
         reply_markup=markup.start_markup(),
     )
 
 
 @bot.message_handler(
     state=BotState.Manage,
-    func=lambda message: message.text
-    == get_text("ru", Message.DELETE_DATABASE),
+    func=lambda message: message.text == get_text("ru", Texts.DELETE_DATABASE),
 )
 async def process_delete_db(message):
     await bot.set_state(
@@ -195,7 +192,7 @@ async def process_delete_db(message):
         )
         await bot.send_message(
             message.chat.id,
-            get_text("ru", Message.NO_DBS),
+            get_text("ru", Texts.NO_DBS),
             reply_markup=markup.start_markup(),
         )
         return
@@ -211,9 +208,7 @@ async def process_delete_db(message):
         f"/db{i} {db.name}" for i, db in enumerate(databases, start=1)
     ]
     message_text = (
-        get_text("ru", Message.SELECT_DB)
-        + "\n"
-        + "\n".join(message_text_parts)
+        get_text("ru", Texts.SELECT_DB) + "\n" + "\n".join(message_text_parts)
     )
 
     await bot.send_message(
@@ -236,19 +231,17 @@ async def process_selecting_db_for_delete(message):
     kb.row_width = 2
     kb.add(
         InlineKeyboardButton(
-            get_text("ru", Message.YES),
+            get_text("ru", Texts.YES),
             callback_data=f"deldb_{db_number}_{db.id}",
         ),
         InlineKeyboardButton(
-            get_text("ru", Message.NO), callback_data="cancel_deldb"
+            get_text("ru", Texts.NO), callback_data="cancel_deldb"
         ),
     )
 
     await bot.send_message(
         message.chat.id,
-        get_text("ru", Message.CONFIRM_DB_DELETING).replace(
-            "%", f'"{db.name}"'
-        ),
+        get_text("ru", Texts.CONFIRM_DB_DELETING).replace("%", f'"{db.name}"'),
         reply_markup=kb,
     )
 
@@ -269,7 +262,7 @@ async def process_delete_db(cb):
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
     await bot.send_message(
         cb.message.chat.id,
-        get_text("ru", Message.DB_DELETED).replace("%", f'"{db.name}"'),
+        get_text("ru", Texts.DB_DELETED).replace("%", f'"{db.name}"'),
         reply_markup=markup.start_markup(),
     )
 
@@ -285,7 +278,7 @@ async def process_cancel_delete_db(cb):
     await bot.delete_message(cb.message.chat.id, cb.message.message_id)
     await bot.send_message(
         cb.message.chat.id,
-        get_text("ru", Message.DB_DELETING_CANCELED),
+        get_text("ru", Texts.DB_DELETING_CANCELED),
         reply_markup=markup.start_markup(),
     )
 
@@ -294,7 +287,7 @@ async def process_cancel_delete_db(cb):
 
 @bot.message_handler(
     func=lambda message: message.text
-    == get_text("ru", Message.ADD_DATABASES_FROM_FILE)
+    == get_text("ru", Texts.ADD_DATABASES_FROM_FILE)
 )
 async def process_add_database_from_file(message):
     await bot.set_state(
@@ -303,7 +296,7 @@ async def process_add_database_from_file(message):
 
     await bot.send_message(
         message.chat.id,
-        get_text("ru", Message.UPLOAD_DB_FILE),
+        get_text("ru", Texts.UPLOAD_DB_FILE),
         reply_markup=ReplyKeyboardRemove(),
         parse_mode="MarkdownV2",
     )
@@ -331,7 +324,7 @@ async def process_uploading_db_file(message):
 
     await bot.send_message(
         message.chat.id,
-        get_text("ru", Message.DATABASES_UPLOADED),
+        get_text("ru", Texts.DATABASES_UPLOADED),
         reply_markup=ReplyKeyboardRemove(),
     )
 

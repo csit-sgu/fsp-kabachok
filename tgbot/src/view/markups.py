@@ -1,24 +1,24 @@
 from telebot import types
 
-from tgbot.src.view.messages import Message, get_text
+from tgbot.src.view.texts import Texts, get_text
 
 
 def start_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    markup.add(types.KeyboardButton(get_text("ru", Message.GET_STATE_BUTTON)))
-    markup.add(types.KeyboardButton(get_text("ru", Message.MANAGE)))
+    markup.add(types.KeyboardButton(get_text("ru", Texts.GET_STATE_BUTTON)))
+    markup.add(types.KeyboardButton(get_text("ru", Texts.MANAGE)))
     return markup
 
 
 def manage_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-    markup.add(types.KeyboardButton(get_text("ru", Message.ADD_DATABASE)))
+    markup.add(types.KeyboardButton(get_text("ru", Texts.ADD_DATABASE)))
     markup.add(
-        types.KeyboardButton(get_text("ru", Message.ADD_DATABASES_FROM_FILE))
+        types.KeyboardButton(get_text("ru", Texts.ADD_DATABASES_FROM_FILE))
     )
-    markup.add(types.KeyboardButton(get_text("ru", Message.DELETE_DATABASE)))
-    markup.add(types.KeyboardButton(get_text("ru", Message.CHANGE_DATABASE)))
+    markup.add(types.KeyboardButton(get_text("ru", Texts.DELETE_DATABASE)))
+    markup.add(types.KeyboardButton(get_text("ru", Texts.CHANGE_DATABASE)))
 
     return markup
