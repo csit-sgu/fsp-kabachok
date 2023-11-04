@@ -33,7 +33,12 @@ class MetricsLimits(BaseModel):
     max_lwlock_count: int
 
 
+class WatchdogSettings(BaseModel):
+    disable_healthcheck: bool
+    interval: int
+
+
 class SharedResources(JSONSettings):
     pg_creds: DatabaseCredentials
-    alarm_interval: int
+    watchdog: WatchdogSettings
     metrics: MetricsLimits

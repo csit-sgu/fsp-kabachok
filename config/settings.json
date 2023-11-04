@@ -17,7 +17,10 @@
         "max_lwlock_count": 10,
         "max_transaction_duration": 100
     },
-    "alarm_interval": 3,
+    "watchdog": {
+        "disable_healthcheck": true,
+        "interval": 3
+    },
     "logger" : {
         "version": 1,
         "disable_existing_loggers": false,

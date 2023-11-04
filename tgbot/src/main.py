@@ -65,7 +65,7 @@ class Context:
         self.scheduler.add_job(
             perform_healthcheck,
             "interval",
-            seconds=self.shared_settings.alarm_interval,
+            seconds=self.shared_settings.watchdog.interval,
             args=(self.bot, self.api),
         )
 
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     configure_logging()
     logger.info("Starting healthcheck scheduler")
     loop = asyncio.get_event_loop()
-    ctx.scheduler.start()
+    if not ctx.shared_settings.watchdog.disable_healthcheck:
+        ctx.scheduler.start()
     logger.info("Starting bot polling")
     loop.run_until_complete(ctx.bot.polling(non_stop=True))
