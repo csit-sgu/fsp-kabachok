@@ -10,7 +10,7 @@ services:
       - ./playground/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "4000:5432"
-    cpus: 0.01
+    cpus: 0.1
   ram_playground:
     container_name: ram_playground
     build:

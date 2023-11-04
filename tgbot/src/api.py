@@ -71,6 +71,8 @@ class Api:
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}?locale={locale}"
         )
+        if r.status_code == 400:
+            return []
         return validator.validate_json(r.text)
 
     async def healthcheck(self, source_id, locale="ru"):
@@ -81,6 +83,8 @@ class Api:
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.HEALTHCHECK.value}{source_id}?locale={locale}"
         )
+        if r.status_code == 400:
+            return []
         return validator.validate_json(r.text)
 
     async def get_users(self):

@@ -35,7 +35,7 @@ async def try_connect(source_id, source, locale):
                 message=get_text(locale, Message.UNAVAILABLE),
             )
         ]
-    return True
+    return True, database
 
 
 async def check_peers(source_id, database, max_ratio, locale):

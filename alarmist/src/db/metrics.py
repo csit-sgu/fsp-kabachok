@@ -50,7 +50,6 @@ async def get_long_transactions(connection: databases.core.Connection):
     return result
 
 
-# TODO: Change it from Gb's to %'s of free space
 async def get_free_space(
     connection: databases.core.Connection,
 ) -> Optional[float]:

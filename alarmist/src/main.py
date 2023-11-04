@@ -162,7 +162,7 @@ async def get_state(source_id: UUID, locale: str, response: Response):
         value=await metrics.get_free_space(database),
     )
     cpu_usage = Metric(
-        tyoe=MetricType.CPU_USAGE,
+        type=MetricType.CPU_USAGE,
         value=await metrics.get_cpu_usage(database),
     )
     # TODO(nrydanov): Add proper handling
