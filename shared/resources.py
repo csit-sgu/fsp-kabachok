@@ -26,6 +26,7 @@ class MetricsLimits(BaseModel):
     cpu_usage_threshold: float
     free_space_threshold: float
     ram_usage_threshold: float
+    max_active_peers: int
     max_active_peers_delta: float
     max_transaction_duration: float
     max_lwlock_count: int

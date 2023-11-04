@@ -1,4 +1,5 @@
 import logging
+import asyncpg
 from typing import List
 from uuid import UUID, uuid4
 
@@ -8,7 +9,7 @@ from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
-from utils import Message
+from utils import Message, MESSAGES
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User
@@ -50,7 +51,7 @@ ctx = Context()
 
 @app.post("/api/user", status_code=204)
 async def register(user: User):
-    await ctx.user_repo.add(user)
+    await ctx.user_repo.add(user, ignore_conflict=True)
 
 
 @app.get("/api/user")
@@ -109,104 +110,130 @@ async def healthcheck(source_id: UUID, locale: str):
     metrics_limits = ctx.shared_settings.metrics
     source: Source = (await retrieve(source_id))[0]
 
-    async with Database(source.conn_string) as database:
-        if not database.is_connected:
-            return list(
-                Alert(
-                    type=AlertType.NOT_CONNECTED, message=Message.NOT_CONNECTED
-                )
+    database = Database(source.conn_string)
+
+    alerts = list()
+
+    try:
+        await database.connect()
+    except asyncpg.exceptions.TooManyConnectionsError:
+        alerts.append(
+            Alert(
+                type=AlertType.ACTIVE_PEERS,
+                message="Слишком много подключений",
             )
-
-        alerts = list()
-
-        try:
-            free_space = await metrics.get_free_space(database)
-            if free_space < metrics_limits.free_space_threshold:
-                alerts.append(
-                    Alert(
-                        type=AlertType.FREE_SPACE, message=Message.FREE_SPACE
-                    )
-                )
-
-            cpu_usage = await metrics.get_cpu_usage(database)
-            if cpu_usage > metrics_limits.cpu_usage_threshold:
-                alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
-        except:
-            # TODO(nrydanpov): Add proper handling
-            pass
-
-        peers_number = await metrics.get_active_peers_number(database)
-        if peers_number > metrics_limits.max_active_peers_delta:
-            alerts.append(
-                Alert(
-                    type=AlertType.ACTIVE_PEERS, message=Message.ACTIVE_PEERS
-                )
-            )
-
-        lwlock_count = await metrics.get_lwlock_count(database)
-        if lwlock_count > metrics_limits.max_lwlock_count:
-            alerts.append(
-                Alert(
-                    type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT
-                )
-            )
-
-        # TODO: "Transaction with id %pid is running %longest_transaction seconds"
-        pid, transaction_duration = await metrics.get_longest_transaction(
-            database
         )
-        if transaction_duration > metrics_limits.max_transaction_duration:
-            alerts.append(
-                Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT)
-            )
-
         return alerts
+
+    if not database.is_connected:
+        return list(
+            Alert(type=AlertType.NOT_CONNECTED, message="Подключение невозможно")
+        )
+
+    peers_number = await metrics.get_active_peers_number(database)
+    if peers_number is None or peers_number > metrics_limits.max_active_peers:
+        alerts.append(
+            Alert(
+                type=AlertType.ACTIVE_PEERS,
+                message="Слишком много подключений",
+            )
+        )
+        return alerts
+
+    free_space = await metrics.get_free_space(database)
+    if (
+        free_space is not None
+        and free_space < metrics_limits.free_space_threshold
+    ):
+        alerts.append(
+            Alert(type=AlertType.FREE_SPACE, message=Message.FREE_SPACE)
+        )
+
+    cpu_usage = await metrics.get_cpu_usage(database)
+    if (
+        cpu_usage is not None
+        and cpu_usage > metrics_limits.cpu_usage_threshold
+    ):
+        alerts.append(Alert(type=AlertType.CPU, message=Message.CPU))
+
+    lwlock_count = await metrics.get_lwlock_count(database)
+    if lwlock_count > metrics_limits.max_lwlock_count:
+        alerts.append(
+            Alert(type=AlertType.LWLOCK_COUNT, message=Message.LWLOCK_COUNT)
+        )
+
+    # TODO: "Transaction with id %pid is running %longest_transaction seconds"
+    pid, transaction_duration = await metrics.get_longest_transaction(database)
+    if transaction_duration > metrics_limits.max_transaction_duration:
+        alerts.append(Alert(type=AlertType.TIMEOUT, message=Message.TIMEOUT))
+
+    await database.disconnect()
+
+    return alerts
 
 
 @app.get("/api/state/{source_id}")
 async def get_state(source_id: UUID, locale: str):
     source: Source = (await retrieve(source_id))[0]
 
-    async with Database(source.conn_string) as database:
-        if not database.is_connected:
-            # TODO(granatam): Change status code
-            return Response(
-                status_code=400, content=Alert(Message.NOT_CONNECTED, locale)
-            )
+    database = Database(source.conn_string)
 
-        try:
-            free_space = Metric(
-                type=MetricType.FREE_SPACE,
-                value=await metrics.get_free_space(database),
-            )
-            cpu_usage = Metric(
-                tyoe=MetricType.CPU_USAGE,
-                value=await metrics.get_cpu_usage(database),
-            )
-        # TODO(nrydanov): Add proper handling
-        except:
-            free_space = Metric(type=MetricType.FREE_SPACE, value=None)
-            cpu_usage = Metric(type=MetricType.CPU_USAGE, value=None)
-        active_peers = Metric(
-            type=MetricType.ACTIVE_PEERS,
-            value=await metrics.get_active_peers_number(database),
+    try:
+        await database.connect()
+    except asyncpg.exceptions.TooManyConnectionsError:
+        return Response(
+            status_code=400,
+            content=Alert(
+                type=AlertType.ACTIVE_PEERS,
+                message=MESSAGES[Message.ACTIVE_PEERS][locale],
+            ),
         )
-        lwlock_count = Metric(
-            type=MetricType.LWLOCK_TRANSACTIONS,
-            value=await metrics.get_lwlock_count(database),
-        )
-        # longest_transaction = Metric(
-        #     MetricType.LONGEST_TRANSACTION,
-        #     await metrics.get_longest_transaction(database),
-        # )
 
-        return [
-            free_space,
-            cpu_usage,
-            active_peers,
-            lwlock_count,
-            # longest_transaction,
-        ]
+    if not database.is_connected:
+        # TODO(granatam): Change status code
+        return Response(
+            status_code=400,
+            content=Alert(
+                type=AlertType.NOT_CONNECTED,
+                message=MESSAGES[Message.NOT_CONNECTED][locale],
+            ),
+        )
+
+    try:
+        free_space = Metric(
+            type=MetricType.FREE_SPACE,
+            value=await metrics.get_free_space(database),
+        )
+        cpu_usage = Metric(
+            tyoe=MetricType.CPU_USAGE,
+            value=await metrics.get_cpu_usage(database),
+        )
+    # TODO(nrydanov): Add proper handling
+    except:
+        free_space = Metric(type=MetricType.FREE_SPACE, value=None)
+        cpu_usage = Metric(type=MetricType.CPU_USAGE, value=None)
+    active_peers = Metric(
+        type=MetricType.ACTIVE_PEERS,
+        value=await metrics.get_active_peers_number(database),
+    )
+    lwlock_count = Metric(
+        type=MetricType.LWLOCK_TRANSACTIONS,
+        value=await metrics.get_lwlock_count(database),
+    )
+    # longest_transaction = Metric(
+    #     MetricType.LONGEST_TRANSACTION,
+    #     await metrics.get_longest_transaction(database),
+    # )
+
+    await database.disconnect()
+
+    return [
+        free_space,
+        cpu_usage,
+        active_peers,
+        lwlock_count,
+        # longest_transaction,
+    ]
 
 
 @app.on_event("startup")

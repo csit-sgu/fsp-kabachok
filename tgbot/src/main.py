@@ -51,26 +51,28 @@ bot.add_custom_filter(StateFilter(bot))
 async def perform_healthcheck(bot: AsyncTeleBot, api: Api):
     users: List[User] = await api.get_users()
     for user in users:
-        db_objects: List[Database] = await api.get_db(user.user_id)
+        db_objects: List[Database] = await api.get_db(user_id=user.user_id)
         for db in db_objects:
             r = await api.healthcheck(db.source_id)
-            output = "\n".join(map(lambda x: x.message, r))
-            bot.send_message(
-                user.chat_id,
-                output,
-            )
+            output = "\n".join(list(map(lambda x: x.message, r)))
+            if output:
+                await bot.send_message(
+                    user.chat_id,
+                    output,
+                )
 
     logger.info("Performing scheduled healthcheck!")
 
 
 scheduler = AsyncIOScheduler()
-scheduler.add_job(perform_healthcheck, "interval", seconds=15, args=(bot, api))
+scheduler.add_job(perform_healthcheck, "interval", seconds=10, args=(bot, api))
 
 
 @bot.message_handler(commands=["start"])
 async def process_start(message):
     chat_id = message.chat.id
     await bot.set_state(message.from_user.id, BotState.Start, chat_id)
+    await api.register_user(user_id=message.from_user.id, chat_id=chat_id)
     await bot.send_message(
         chat_id,
         get_text("ru", Message.START_MESSAGE),
