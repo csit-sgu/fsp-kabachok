@@ -75,6 +75,12 @@ class Api:
             return []
         return validator.validate_json(r.text)
 
+    # TODO(granatam): Implement this
+    async def get_states_plots(self, source_id):
+        r = await self._client.get(
+            f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
+        )
+
     async def healthcheck(self, source_id, locale="ru"):
         logger.debug(
             f"Api.healthcheck called with params: {source_id=} {locale=}"
