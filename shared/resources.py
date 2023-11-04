@@ -22,6 +22,13 @@ class DatabaseCredentials(BaseModel):
     db_name: str
 
 
+class RedisCredentials(BaseModel):
+    username: str
+    password: str
+    host: str
+    port: int
+
+
 class MetricsLimits(BaseModel):
     cpu_usage_threshold: float
     free_space_threshold: float
@@ -41,4 +48,5 @@ class WatchdogSettings(BaseModel):
 class SharedResources(JSONSettings):
     pg_creds: DatabaseCredentials
     watchdog: WatchdogSettings
+    redis_creds: RedisCredentials
     metrics: MetricsLimits

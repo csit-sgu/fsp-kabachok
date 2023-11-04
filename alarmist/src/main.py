@@ -4,13 +4,14 @@ from uuid import UUID, uuid4
 
 import collect
 import db.metrics as metrics
+import redis
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
 from fastapi import FastAPI, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
 
-from shared.db import PgRepository, create_db_string
+from shared.db import RedisRepository, create_db_string
 from shared.entities import User
 from shared.logging import configure_logging
 from shared.models import Metric, MetricType
@@ -33,17 +34,26 @@ class Context:
         self.shared_settings = SharedResources(
             f"{SHARED_CONFIG_PATH}/settings.json"
         )
-        self.pg = Database(create_db_string(self.shared_settings.pg_creds))
-        self.source_repo = PgRepository(self.pg, Source)
-        self.relation_repo = PgRepository(self.pg, UserSource)
-        self.source_view_repo = PgRepository(self.pg, UserSources)
-        self.user_repo = PgRepository(self.pg, User)
 
+        redis_creds = self.shared_settings.redis_creds
+        self.redis = redis.Redis(
+            host=redis_creds.host,
+            port=redis_creds.port,
+            username=redis_creds.username,
+            password=redis_creds.password,
+            decode_responses=True,
+        )
+        self.source_repo = RedisRepository(self.redis, Source)
+        self.relation_repo = RedisRepository(self.redis, UserSource)
+        self.source_view_repo = RedisRepository(self.redis, UserSources)
+        self.user_repo = RedisRepository(self.redis, User)
+
+    # TODO(granatam): Switch to Redis
     async def init_db(self) -> None:
         await self.pg.connect()
 
     async def dispose_db(self) -> None:
-        await self.pg.disconnect()
+        await self.redis.close()
 
 
 ctx = Context()
