@@ -107,3 +107,9 @@ class Api:
         logger.debug(f"Sending GET request to {url}")
         r = await self._client.get(url)
         return validator.validate_json(r.text)
+
+    async def manage(self, source_id, action, body):
+        r = await self._client.post(
+            f"{self._url_prefix}{AlarmistRoutes.MANAGE.value}{action.value}?source_id={source_id}",
+            json=body,
+        )

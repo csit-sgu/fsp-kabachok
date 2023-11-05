@@ -7,6 +7,8 @@ from telebot.asyncio_storage import StateStorageBase
 from view.markups import start_markup
 from view.states import BotState
 
+from shared.models import Action
+
 logger = logging.getLogger("app")
 
 
@@ -43,6 +45,16 @@ def register_change_max_connections_handlers(
         max_connections = int(message.text)
 
         # TODO: Implement
+        await api.manage(
+            source_id,
+            Action.SET_MAX_CONNECTIONS,
+            {
+                "max_connections": max_connections,
+                "secret": "1234",
+                "locale": "ru",
+            },
+        )
+
         logger.info("aboba" * 100)
         logger.info(source_id, max_connections)
 
