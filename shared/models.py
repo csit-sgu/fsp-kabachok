@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -44,3 +45,27 @@ class AlertType(Enum):
 class Alert(BaseModel):
     type: AlertType
     message: str
+
+
+class Action(Enum):
+    SET_MAX_CONNECTIONS = "set_max_connections"
+    SET_SHARED_BUFFERS = "set_shared_buffers"
+    TERMINATE_PROCESS = "terminate_process"
+    RESTART_SERVER = "restart_server"
+
+
+class BaseManagingRequest(BaseModel):
+    secret: str
+    locale: str
+
+
+class MaxConnectionsBody(BaseManagingRequest):
+    max_connections: int
+
+
+class SharedBuffersBody(BaseManagingRequest):
+    shared_buffers: int
+
+
+class TerminateProcessBody(BaseManagingRequest):
+    pids: List[int]
