@@ -177,9 +177,6 @@ async def healthcheck(source_id: UUID, locale: str, response: Response):
         if not ok:
             alerts.append(alert)
 
-    cpu_usage = await ctx.cpu_usage_repo.get(str(source_id))
-    logger.debug(f"Cpu usage stats: {cpu_usage}")
-
     await database.disconnect()
     return alerts
 
@@ -233,13 +230,8 @@ async def get_state(source_id: UUID, locale: str, response: Response):
 @app.get(AlarmistRoutes.STATE.value + "{source_id}/plots")
 async def get_state_graphics(source_id: UUID):
     cpu_usage = await ctx.cpu_usage_repo.get(str(source_id))
-    logger.debug(f"Cpu usage stats: {cpu_usage}")
-
     active_peers = await ctx.active_peers_repo.get(str(source_id))
-    logger.debug(f"Active peers stats: {active_peers}")
-
     free_space = await ctx.disk_space_repo.get(str(source_id))
-    logger.debug(f"Disk space stats: {free_space}")
 
     return [
         free_space,

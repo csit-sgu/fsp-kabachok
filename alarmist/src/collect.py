@@ -52,7 +52,9 @@ async def check_peers(
     peers_number = await metrics.get_active_peers_number(database)
 
     if peers_number is not None:
-        redis_repo.add(str(source_id), datetime.now(), peers_number)
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), peers_number
+        )
 
         if peers_number > max_active_peers * max_ratio:
             logger.warn(
@@ -75,7 +77,9 @@ async def check_free_space(
     free_space = await metrics.get_free_space(database)
 
     if free_space is not None:
-        redis_repo.add(str(source_id), datetime.now(), free_space)
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), free_space
+        )
 
         if free_space < max_threshold:
             logger.warn(
@@ -98,7 +102,9 @@ async def check_cpu_usage(
     cpu_usage = await metrics.get_cpu_usage(database)
 
     if cpu_usage is not None:
-        redis_repo.add(str(source_id), datetime.now(), cpu_usage)
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), cpu_usage
+        )
 
         if cpu_usage > max_threshold:
             logger.warn(

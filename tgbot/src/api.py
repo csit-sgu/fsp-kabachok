@@ -77,6 +77,7 @@ class Api:
 
     # TODO(granatam): Implement this
     async def get_states_plots(self, source_id):
+        logger.debug(f"Api.get_states_plots called with params: {source_id=}")
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
         )
@@ -91,7 +92,10 @@ class Api:
             f"{self._url_prefix}{AlarmistRoutes.HEALTHCHECK.value}{source_id}?locale={locale}"
         )
         if r.status_code == 400:
+            logger.debug(f"404: {r=}")
             return []
+
+        await self.get_states_plots(source_id)
         return validator.validate_json(r.text)
 
     async def get_users(self):

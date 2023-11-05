@@ -4,7 +4,7 @@ from typing import Optional
 import asyncpg
 import databases
 
-logger = logging.getLogger()
+logger = logging.getLogger("app")
 
 
 async def get_max_active_peers(connection: databases.core.Connection) -> int:
