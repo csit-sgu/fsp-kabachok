@@ -69,7 +69,7 @@ async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
                         # TODO: Unhardcode texts
                         kb.add(
                             types.InlineKeyboardButton(
-                                "Выбрать соединение, которое необходимо убить",
+                                "Выбрать соединение, которое необходимо остановить",
                                 callback_data=f"killconn_{db.source_id}",
                             )
                         )
