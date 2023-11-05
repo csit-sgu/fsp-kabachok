@@ -71,10 +71,9 @@ def register_get_state_handlers(
             MetricType.ACTIVE_PEERS,
         ]
         stats = await api.get_states_plots(source_id=db.id)
-        logger.debug(f"{stats=}")
         for stat, values in stats.items():
             if stat in metric_types_with_graphs:
-                image = create_graph(stat, values)
+                image = create_graph(stat.value, values)
                 await bot.send_photo(message.chat.id, image)
 
         await bot.send_message(message.chat.id, text, parse_mode="markdown")

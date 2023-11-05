@@ -18,11 +18,13 @@ class RedisRepository:
         self, source_id: str, timestamp: datetime.time, metrics_value: int
     ):
         logger.debug(f"Redis.add {source_id=} {timestamp=} {metrics_value=}")
-        self._redis.hset(source_id, timestamp, metrics_value)
+        self._redis.hset(
+            f"{self._table_name}:{source_id}", timestamp, metrics_value
+        )
 
     async def get(self, source_id: str):
         logger.debug(f"Redis.get {source_id=}")
-        return self._redis.hgetall(source_id)
+        return self._redis.hgetall(f"{self._table_name}:{source_id}")
 
     async def cleanup(self):
         logger.debug("Redis.cleanup")
