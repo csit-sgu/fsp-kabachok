@@ -233,11 +233,11 @@ async def get_state_graphics(source_id: UUID):
     active_peers = await ctx.active_peers_repo.get(str(source_id))
     free_space = await ctx.disk_space_repo.get(str(source_id))
 
-    return [
-        free_space,
-        cpu_usage,
-        active_peers,
-    ]
+    return {
+        MetricType.FREE_SPACE: free_space,
+        MetricType.CPU_USAGE: cpu_usage,
+        MetricType.ACTIVE_PEERS: active_peers,
+    }
 
 
 @app.on_event("startup")

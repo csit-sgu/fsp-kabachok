@@ -20,7 +20,7 @@ class RedisRepository:
         logger.debug(f"Redis.add {source_id=} {timestamp=} {metrics_value=}")
         self._redis.hset(source_id, timestamp, metrics_value)
 
-    async def get(self, source_id: str) -> Entity:
+    async def get(self, source_id: str):
         logger.debug(f"Redis.get {source_id=}")
         return self._redis.hgetall(source_id)
 

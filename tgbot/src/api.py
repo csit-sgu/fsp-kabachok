@@ -1,12 +1,13 @@
 import logging
-from typing import List
+from typing import Dict, List
 from uuid import UUID
 
 import httpx
+from graph import create_graph
 from pydantic import TypeAdapter
 
 from shared.entities import User
-from shared.models import Alert, Database, Metric
+from shared.models import Alert, Database, Metric, MetricType
 from shared.routes import AlarmistRoutes
 
 logger = logging.getLogger("app")
@@ -75,13 +76,14 @@ class Api:
             return []
         return validator.validate_json(r.text)
 
-    # TODO(granatam): Implement this
     async def get_states_plots(self, source_id):
         logger.debug(f"Api.get_states_plots called with params: {source_id=}")
+        validator = TypeAdapter(Dict[MetricType, Dict[float, float]])
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
         )
-        logger.debug(r)
+        data = validator.validate_json(r.text)
+        create_graph(data[MetricType.CPU_USAGE])
 
     async def healthcheck(self, source_id, locale="ru"):
         logger.debug(
