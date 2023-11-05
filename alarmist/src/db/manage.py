@@ -1,6 +1,20 @@
 import databases
 
 
+async def restart_server(connection):
+    await connection.execute("CREATE EXTENSION IF NOT EXISTS plpython3u;")
+    await connection.execute(
+        """
+            CREATE OR REPLACE FUNCTION kabachok_restart_server()
+            RETURNS int
+            AS $$
+            subprocess.run(['pgctl', 'restart', '-t', '0'], check=True)
+            return 0
+            $$ LANGUAGE plpython3u;
+            """
+    )
+
+
 async def terminate_process(connection: databases.core.Connection, pid: int):
     await connection.execute(
         f"""
@@ -18,7 +32,7 @@ async def set_max_connections(
     await connection.execute(
         f"ALTER SYSTEM SET max_connections = {max_connections};"
     )
-    await restart_server(connection)
+    await reload_configuration(connection)
 
 
 # TODO(granatam): shared_buffers is in [128Kb; ...]. Check this
@@ -28,8 +42,8 @@ async def set_shared_buffers(
     await connection.execute(
         f"ALTER SYSTEM SET shared_buffers = {shared_buffers};"
     )
-    await restart_server(connection)
+    await reload_configuration(connection)
 
 
-async def restart_server(connection: databases.core.Connection):
+async def reload_configuration(connection: databases.core.Connection):
     await connection.execute("SELECT pg_reload_conf();")

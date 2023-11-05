@@ -6,3 +6,4 @@ class AlarmistRoutes(Enum):
     DB = "/api/db/"
     HEALTHCHECK = "/api/healthcheck/"
     STATE = "/api/state/"
+    MANAGE = "/api/db/manage/"
