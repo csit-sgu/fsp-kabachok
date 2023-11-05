@@ -15,10 +15,10 @@
 ## Текущие задачи
 
 1. Довести все существующие alert-ы до рабочего состояния
-    - [ ] CPU Usage
-    - [ ] Disk space
+    - [x] CPU Usage
+    - [x] Disk space
     - [x] Active peers
-    - [ ] LWLOCK transactions
+    - [x] LWLOCK transactions
     - [x] Long transactions
     - [x] DB is unavailable
 
