@@ -80,6 +80,7 @@ class Api:
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
         )
+        logger.debug(r)
 
     async def healthcheck(self, source_id, locale="ru"):
         logger.debug(
