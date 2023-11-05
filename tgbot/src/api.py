@@ -1,12 +1,13 @@
 import logging
-from typing import List
+from typing import Dict, List
 from uuid import UUID
 
 import httpx
+from graph import create_graph
 from pydantic import TypeAdapter
 
 from shared.entities import User
-from shared.models import Alert, Database, Metric
+from shared.models import Alert, Database, Metric, MetricType
 from shared.routes import AlarmistRoutes
 
 logger = logging.getLogger("app")
@@ -75,6 +76,14 @@ class Api:
             return []
         return validator.validate_json(r.text)
 
+    async def get_states_plots(self, source_id):
+        logger.debug(f"Api.get_states_plots called with params: {source_id=}")
+        validator = TypeAdapter(Dict[MetricType, Dict[float, float]])
+        r = await self._client.get(
+            f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
+        )
+        return validator.validate_json(r.text)
+
     async def healthcheck(self, source_id, locale="ru"):
         logger.debug(
             f"Api.healthcheck called with params: {source_id=} {locale=}"
@@ -84,7 +93,10 @@ class Api:
             f"{self._url_prefix}{AlarmistRoutes.HEALTHCHECK.value}{source_id}?locale={locale}"
         )
         if r.status_code == 400:
+            logger.debug(f"404: {r=}")
             return []
+
+        await self.get_states_plots(source_id)
         return validator.validate_json(r.text)
 
     async def get_users(self):
@@ -95,3 +107,9 @@ class Api:
         logger.debug(f"Sending GET request to {url}")
         r = await self._client.get(url)
         return validator.validate_json(r.text)
+
+    async def manage(self, source_id, action, body):
+        r = await self._client.post(
+            f"{self._url_prefix}{AlarmistRoutes.MANAGE.value}{action.value}?source_id={source_id}",
+            json=body,
+        )

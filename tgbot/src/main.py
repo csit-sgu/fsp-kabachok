@@ -6,13 +6,17 @@ import httpx
 from api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
-from telebot.async_telebot import AsyncTeleBot
+from telebot import types
+from telebot.async_telebot import AsyncTeleBot, ExceptionHandler
 from telebot.asyncio_filters import StateFilter
 from telebot.asyncio_storage import StatePickleStorage
 from view.handlers.add_database_from_file_handlers import (
     register_add_database_from_file_handlers,
 )
 from view.handlers.add_database_handlers import register_add_database_handlers
+from view.handlers.change_max_connections_handlers import (
+    register_change_max_connections_handlers,
+)
 from view.handlers.delete_database_handlers import (
     register_delete_database_handlers,
 )
@@ -21,7 +25,7 @@ from view.handlers.menu_handlers import register_menu_handlers
 
 from shared.entities import User
 from shared.logging import configure_logging
-from shared.models import Database
+from shared.models import Alert, AlertType, Database
 from shared.resources import SharedResources
 from shared.utils import SHARED_CONFIG_PATH
 
@@ -35,7 +39,7 @@ async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
             user_id=user.user_id
         )
         for db in db_objects:
-            alerts = await api_service.healthcheck(db.source_id)
+            alerts: list[Alert] = await api_service.healthcheck(db.source_id)
             for alert in alerts:
                 ip = db.conn_string.split("@")[1]
                 print(ip)
@@ -46,12 +50,44 @@ async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
                     )
                 )
                 if output:
+                    kb = types.InlineKeyboardMarkup()
+                    kb.row_width = 1
+
+                    kb.add(
+                        # TODO: Unhardcode texts
+                        types.InlineKeyboardButton(
+                            "Изменить кол-во максимальных подключений",
+                            callback_data=f"chngmaxconn_{db.source_id}",
+                        ),
+                        types.InlineKeyboardButton(
+                            "Изменить размер shared-буферов",
+                            callback_data=f"chngsharedbuf_{db.source_id}",
+                        ),
+                    )
+
+                    if alert.type == AlertType.TIMEOUT:
+                        # TODO: Unhardcode texts
+                        kb.add(
+                            types.InlineKeyboardButton(
+                                "Выбрать соединение, которое необходимо убить",
+                                callback_data=f"killconn_{db.source_id}",
+                            )
+                        )
+
                     output = "🚨 *ВНИМАНИЕ* 🚨\n" + output
                     await tgbot.send_message(
-                        user.chat_id, output, parse_mode="markdown"
+                        user.chat_id,
+                        output,
+                        parse_mode="markdown",
+                        reply_markup=kb,
                     )
 
     logger.info("Performing scheduled healthcheck!")
+
+
+class AppExceptionHandler(ExceptionHandler):
+    def handle(exception: Exception):
+        logger.exception(exception)
 
 
 class Context:
@@ -60,12 +96,14 @@ class Context:
         self.bot = AsyncTeleBot(
             self.token,
             state_storage=storage,
+            # exception_handler=ExceptionHandler(),
         )
         register_menu_handlers(self.bot, self.api)
-        register_get_state_handlers(self.bot, self.api)
+        register_get_state_handlers(self.bot, self.api, storage)
         register_add_database_handlers(self.bot, self.api, storage)
         register_delete_database_handlers(self.bot, self.api, storage)
         register_add_database_from_file_handlers(self.bot, self.api)
+        register_change_max_connections_handlers(self.bot, self.api, storage)
         self.bot.add_custom_filter(StateFilter(self.bot))
 
     def init_scheduler(self):

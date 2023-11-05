@@ -1,4 +1,10 @@
 {
+    "redis_creds": {
+        "username": "redis",
+        "password": "1234",
+        "host": "redis",
+        "port": "6379"
+    },
     "pg_creds": {
         "driver": "postgres",
         "username": "postgres",
@@ -18,8 +24,8 @@
         "max_transaction_duration": 100
     },
     "watchdog": {
-        "disable_healthcheck": true,
-        "interval": 3
+        "disable_healthcheck": false,
+        "interval": 15
     },
     "logger" : {
         "version": 1,
@@ -46,7 +52,7 @@
             }
         },
         "loggers": {
-            "app": {"handlers": ["console"], "level": "DEBUG", "propagate": true},
+            "app": {"handlers": ["console"], "level": "WARNING", "propagate": true},
             "databases": {"handlers": ["console"], "level": "INFO"},
             "httpx": {"handlers": ["console"], "level": "INFO"},
             "asgi_correlation_id": {"handlers": ["console"], "level": "INFO"}

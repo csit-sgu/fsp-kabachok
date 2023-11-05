@@ -12,6 +12,7 @@ class Texts(Enum):
     MANAGE = "manage"
     GET_STATE = "get_state"
     GET_STATE_BUTTON = "get_state_button"
+    GET_STATE_PLOTS_BUTTON = "get_state_plots_button"
     ENTER_DB_DISPLAY_NAME = "enter_db_display_name"
     ENTER_DB_URL = "enter_db_url"
     DB_ADDED = "db_added"
@@ -55,6 +56,9 @@ MESSAGES = {
     Texts.DELETE_DATABASE: {"ru": "Удалить БД"},
     Texts.GET_STATE: {"ru": "Вот состояние на текущий момент"},
     Texts.GET_STATE_BUTTON: {"ru": "Узнать текущее состояние"},
+    Texts.GET_STATE_PLOTS_BUTTON: {
+        "ru": "Получить статистику в виде графиков"
+    },
     Texts.MANAGE: {"ru": "Управление"},
     Texts.ENTER_DB_DISPLAY_NAME: {
         "ru": "Введите название вашей базы данных, которое будет отображаться в боте"

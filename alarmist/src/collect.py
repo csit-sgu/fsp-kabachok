@@ -1,8 +1,11 @@
 import logging
+from datetime import datetime
+from uuid import UUID
 
 import asyncpg
 import db.metrics as metrics
 from databases import Database
+from db.redis import RedisRepository
 from utils import Message, get_text
 
 from shared.models import Alert, AlertType
@@ -38,47 +41,89 @@ async def try_connect(source_id, source, locale):
     return True, database
 
 
-async def check_peers(source_id, database, max_ratio, locale):
+async def check_peers(
+    source_id: UUID,
+    database: Database,
+    max_ratio: float,
+    locale: str,
+    redis_repo: RedisRepository = None,
+):
     max_active_peers = await metrics.get_max_active_peers(database)
     peers_number = await metrics.get_active_peers_number(database)
-    if peers_number is None or peers_number > max_active_peers * max_ratio:
-        logger.warn(
-            f"Alert detected. Source {source_id} has too many active peers."
+
+    if peers_number is not None:
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), peers_number
         )
-        return False, Alert(
-            type=AlertType.ACTIVE_PEERS,
-            message=get_text(locale, Message.ACTIVE_PEERS),
-        )
+
+        if peers_number > max_active_peers * max_ratio:
+            logger.warn(
+                f"Alert detected. Source {source_id} has too many active peers."
+            )
+            return False, Alert(
+                type=AlertType.ACTIVE_PEERS,
+                message=get_text(locale, Message.ACTIVE_PEERS),
+            )
     return True, None
 
 
-async def check_free_space(source_id, database, max_threshold, locale):
+async def check_free_space(
+    source_id: UUID,
+    database: Database,
+    max_threshold: float,
+    locale: str,
+    redis_repo: RedisRepository = None,
+):
     free_space = await metrics.get_free_space(database)
-    if free_space is not None and free_space < max_threshold:
-        logger.warn(
-            f"Alert detected. Source {source_id} hasn't much free space left."
+
+    if free_space is not None:
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), free_space
         )
-        return False, Alert(
-            type=AlertType.FREE_SPACE,
-            message=get_text(locale, Message.FREE_SPACE),
-        )
+
+        if free_space < max_threshold:
+            logger.warn(
+                f"Alert detected. Source {source_id} hasn't much free space left."
+            )
+            return False, Alert(
+                type=AlertType.FREE_SPACE,
+                message=get_text(locale, Message.FREE_SPACE),
+            )
     return True, None
 
 
-async def check_cpu_usage(source_id, database, max_threshold, locale):
+async def check_cpu_usage(
+    source_id: UUID,
+    database: Database,
+    max_threshold: float,
+    locale: str,
+    redis_repo: RedisRepository = None,
+):
     cpu_usage = await metrics.get_cpu_usage(database)
-    if cpu_usage is not None and cpu_usage > max_threshold:
-        logger.warn(
-            f"Alert detected. Source {source_id} has too high CPU usage."
+
+    if cpu_usage is not None:
+        await redis_repo.add(
+            str(source_id), datetime.now().timestamp(), cpu_usage
         )
-        return False, Alert(
-            type=AlertType.CPU,
-            message=get_text(locale, Message.CPU),
-        )
+
+        if cpu_usage > max_threshold:
+            logger.warn(
+                f"Alert detected. Source {source_id} has too high CPU usage."
+            )
+            return False, Alert(
+                type=AlertType.CPU,
+                message=get_text(locale, Message.CPU),
+            )
     return True, None
 
 
-async def check_lwlocks(source_id, database, max_count, locale):
+async def check_lwlocks(
+    source_id: UUID,
+    database: Database,
+    max_count: float,
+    locale: str,
+    redis_repo: RedisRepository = None,
+):
     lwlock_count = await metrics.get_lwlock_count(database)
     if lwlock_count > max_count:
         logger.warn(
@@ -91,7 +136,13 @@ async def check_lwlocks(source_id, database, max_count, locale):
     return True, None
 
 
-async def check_long_transactions(source_id, database, max_duration, locale):
+async def check_long_transactions(
+    source_id: UUID,
+    database: Database,
+    max_duration: float,
+    locale: str,
+    redis_repo: RedisRepository = None,
+):
     response = await metrics.get_long_transactions(database)
     if response:
         logger.warn(

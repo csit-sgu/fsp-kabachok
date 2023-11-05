@@ -11,4 +11,6 @@ class BotState(StatesGroup):
     EnteringDBName = State()
     EnteringDBURL = State()
     SelectingDBForDelete = State()
+    SelectingDBForCheckMetrics = State()
     UploadingDBFile = State()
+    EnteringNewMaxConnectionsCount = State()
