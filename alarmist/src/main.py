@@ -3,20 +3,22 @@ from typing import List
 from uuid import UUID, uuid4
 
 import collect
+import db.manage as actions
 import db.metrics as metrics
 from asgi_correlation_id import CorrelationIdMiddleware
 from databases import Database
 from entities import Source, UserSource, UserSources
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
 from models import PatchDatabaseRequest, SubmitDatabaseRequest
+from pydantic import TypeAdapter
 
 from shared.db import PgRepository, create_db_string
 from shared.entities import User
 from shared.logging import configure_logging
-from shared.models import Metric, MetricType
+from shared.models import Action, Metric, MetricType
 from shared.resources import SharedResources
 from shared.routes import AlarmistRoutes
-from shared.utils import SHARED_CONFIG_PATH
+from shared.utils import ACTION_BODY_MAPPING, SHARED_CONFIG_PATH
 
 app = FastAPI()
 app.add_middleware(CorrelationIdMiddleware)
@@ -188,6 +190,42 @@ async def get_state(source_id: UUID, locale: str, response: Response):
         lwlock_count,
         long_transactions,
     ]
+
+
+@app.post(AlarmistRoutes.MANAGE.value + "{action}")
+async def manage(
+    source_id: UUID, action: Action, request: Request, response: Response
+):
+    source: Source = (await retrieve(source_id))[0]
+    mapping = ACTION_BODY_MAPPING[action]
+    body = TypeAdapter(mapping).validate_python(await request.json())
+    ok, r = await collect.try_connect(source_id, source, body.locale)
+    if not ok:
+        response.status_code = 400
+        return r
+    conn = r
+    match action:
+        case Action.SET_MAX_CONNECTIONS:
+            logger.info(
+                f"Trying to set a new max connections cap, source_id: {source_id}"
+            )
+            await actions.set_max_connections(conn, body.max_connections)
+        case Action.TERMINATE_PROCESS:
+            logger.info(
+                f"Trying to terminate processes, source_id: {source_id}"
+            )
+            for pid in body.pids:
+                await actions.terminate_process(conn, pid)
+        case Action.SET_SHARED_BUFFERS:
+            await actions.set_shared_buffers(conn, body.shared_buffers)
+        case Action.RESTART_SERVER:
+            await actions.restart_server(conn)
+        case _:
+            response.status_code = 400
+            logger.error(
+                f"Unexpected action in manage endpoint, source_id: {source_id}"
+            )
+            return
 
 
 @app.on_event("startup")

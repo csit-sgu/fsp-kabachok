@@ -32,7 +32,7 @@
 
 ### Disk usage alert
 - [x] INSERTS
-- [ ] Playground (забитый диск + низкий кэп)
+- [x] Playground (забитый диск + низкий кэп)
 
 ### Long transactions
 
