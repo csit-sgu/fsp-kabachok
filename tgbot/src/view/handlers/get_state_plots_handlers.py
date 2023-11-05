@@ -29,11 +29,3 @@ def register_get_state_plots_handlers(bot: AsyncTeleBot, api: Api):
         if not databases:
             await bot.send_message(chat_id, get_text("ru", Texts.NO_DBS))
             return
-
-        # for db in databases:
-        #     plots_points = json.loads(await api.get_states_plots(source_id=db.id))
-        #     df2 = json_normalize(dict['technologies'])
-
-        #     await bot.send_message(
-        #         message.chat.id, text, parse_mode="markdown"
-        #     )

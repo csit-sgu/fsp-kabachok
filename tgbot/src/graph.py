@@ -9,6 +9,7 @@ logger = logging.getLogger("app")
 
 
 def create_graph(title, data):
+    logger.debug(data)
     data_tuples = list(data.items())
     df = pd.DataFrame(data_tuples, columns=["Timestamp", "Value"])
 

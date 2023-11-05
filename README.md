@@ -31,6 +31,7 @@
 8. ~Выводить AlertType с эмодзи~
 
 ### Disk usage alert
+
 - [x] INSERTS
 - [x] Playground (забитый диск + низкий кэп)
 

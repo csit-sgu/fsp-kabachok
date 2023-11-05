@@ -1,4 +1,7 @@
+import logging
+
 from api import Api
+from graph import create_graph
 from models import SourceModel
 from pydantic import TypeAdapter
 from telebot import types
@@ -9,6 +12,8 @@ from view.texts import Texts, get_text
 from view.utils import get_selecting_db_text
 
 from shared.models import Metric, MetricType
+
+logger = logging.getLogger("app")
 
 
 def register_get_state_handlers(
@@ -59,6 +64,18 @@ def register_get_state_handlers(
 
         metrics: list[Metric] = await api.get_states(source_id=db.id)
         text = _get_metrics_text(metrics=metrics, database_name=db.name)
+
+        metric_types_with_graphs = [
+            MetricType.CPU_USAGE,
+            MetricType.FREE_SPACE,
+            MetricType.ACTIVE_PEERS,
+        ]
+        stats = await api.get_states_plots(source_id=db.id)
+        logger.debug(f"{stats=}")
+        for stat, values in stats.items():
+            if stat in metric_types_with_graphs:
+                image = create_graph(stat, values)
+                await bot.send_photo(message.chat.id, image)
 
         await bot.send_message(message.chat.id, text, parse_mode="markdown")
 

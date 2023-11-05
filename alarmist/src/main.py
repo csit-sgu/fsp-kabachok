@@ -135,6 +135,7 @@ async def remove(source_id: UUID):
 
 @app.get(AlarmistRoutes.HEALTHCHECK.value + "{source_id}")
 async def healthcheck(source_id: UUID, locale: str, response: Response):
+    logger.debug(f"Healthcheck {source_id=}")
     metrics_limits = ctx.shared_settings.metrics
     source: Source = (await retrieve(source_id))[0]
 
@@ -241,7 +242,7 @@ async def get_state_graphics(source_id: UUID):
         MetricType.ACTIVE_PEERS: active_peers,
     }
 
-  
+
 @app.post(AlarmistRoutes.MANAGE.value + "{action}")
 async def manage(
     source_id: UUID, action: Action, request: Request, response: Response

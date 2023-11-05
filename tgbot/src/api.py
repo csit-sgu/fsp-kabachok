@@ -82,8 +82,7 @@ class Api:
         r = await self._client.get(
             f"{self._url_prefix}{AlarmistRoutes.STATE.value}{source_id}/plots"
         )
-        data = validator.validate_json(r.text)
-        create_graph(data[MetricType.CPU_USAGE])
+        return validator.validate_json(r.text)
 
     async def healthcheck(self, source_id, locale="ru"):
         logger.debug(
