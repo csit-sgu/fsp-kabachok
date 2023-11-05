@@ -52,7 +52,7 @@
             }
         },
         "loggers": {
-            "app": {"handlers": ["console"], "level": "DEBUG", "propagate": true},
+            "app": {"handlers": ["console"], "level": "WARNING", "propagate": true},
             "databases": {"handlers": ["console"], "level": "INFO"},
             "httpx": {"handlers": ["console"], "level": "INFO"},
             "asgi_correlation_id": {"handlers": ["console"], "level": "INFO"}
