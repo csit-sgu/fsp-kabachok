@@ -11,6 +11,7 @@ from telebot.types import (
 from view import markups
 from view.states import BotState
 from view.texts import Texts, get_text
+from view.utils import get_selecting_db_text
 
 
 def register_delete_database_handlers(
@@ -53,17 +54,10 @@ def register_delete_database_handlers(
             databases=databases_in_fsm_data,
         )
 
-        message_text_parts = [
-            f"/db{i} {db.name}" for i, db in enumerate(databases, start=1)
-        ]
-        message_text = (
-            get_text("ru", Texts.SELECT_DB)
-            + "\n"
-            + "\n".join(message_text_parts)
-        )
-
         await bot.send_message(
-            message.chat.id, message_text, reply_markup=ReplyKeyboardRemove()
+            message.chat.id,
+            get_selecting_db_text(databases),
+            reply_markup=ReplyKeyboardRemove(),
         )
 
     @bot.message_handler(

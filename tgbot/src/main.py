@@ -62,7 +62,7 @@ class Context:
             state_storage=storage,
         )
         register_menu_handlers(self.bot, self.api)
-        register_get_state_handlers(self.bot, self.api)
+        register_get_state_handlers(self.bot, self.api, storage)
         register_add_database_handlers(self.bot, self.api, storage)
         register_delete_database_handlers(self.bot, self.api, storage)
         register_add_database_from_file_handlers(self.bot, self.api)
