@@ -7,7 +7,7 @@ from api import Api
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from telebot import types
-from telebot.async_telebot import AsyncTeleBot
+from telebot.async_telebot import AsyncTeleBot, ExceptionHandler
 from telebot.asyncio_filters import StateFilter
 from telebot.asyncio_storage import StatePickleStorage
 from view.handlers.add_database_from_file_handlers import (
@@ -85,12 +85,18 @@ async def perform_healthcheck(tgbot: AsyncTeleBot, api_service: Api):
     logger.info("Performing scheduled healthcheck!")
 
 
+class AppExceptionHandler(ExceptionHandler):
+    def handle(exception: Exception):
+        logger.exception(exception)
+
+
 class Context:
     def init_bot(self):
         storage = StatePickleStorage(file_path="cache/.state_save/states.pkl")
         self.bot = AsyncTeleBot(
             self.token,
             state_storage=storage,
+            # exception_handler=ExceptionHandler(),
         )
         register_menu_handlers(self.bot, self.api)
         register_get_state_handlers(self.bot, self.api, storage)

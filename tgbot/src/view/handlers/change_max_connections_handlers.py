@@ -1,9 +1,13 @@
+import logging
+
 from api import Api
 from telebot import types
 from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateStorageBase
-from view import markups
+from view.markups import start_markup
 from view.states import BotState
+
+logger = logging.getLogger("app")
 
 
 def register_change_max_connections_handlers(
@@ -39,7 +43,8 @@ def register_change_max_connections_handlers(
         max_connections = int(message.text)
 
         # TODO: Implement
-        print(source_id, max_connections)
+        logger.info("aboba" * 100)
+        logger.info(source_id, max_connections)
 
         await bot.set_state(
             message.chat.id,
@@ -49,5 +54,5 @@ def register_change_max_connections_handlers(
         await bot.send_message(
             message.chat.id,
             "Новое кол-во максимальных соеденинений установлено",
-            reply_markup=markups.start(),
+            reply_markup=start_markup(),
         )
